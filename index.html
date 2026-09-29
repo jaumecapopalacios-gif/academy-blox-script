@@ -1,0 +1,305 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
+
+    <title>
+        Academy Blox Script
+    </title>
+
+    <link
+        rel="stylesheet"
+        href="{{ url_for('static', filename='style.css') }}"
+    >
+
+</head>
+
+
+<body>
+
+
+<header>
+
+    <div class="logo">
+        ACADEMY BLOX SCRIPT
+    </div>
+
+</header>
+
+
+<section class="hero">
+
+    <div>
+
+        <p class="blue">
+            ACADEMY ONLINE
+        </p>
+
+        <h1>
+            ACADEMY
+            <span class="blue">
+                BLOX SCRIPT
+            </span>
+        </h1>
+
+        <p>
+            Aprende a programar en Roblox Studio
+            desde cero y crea tus propias experiencias.
+        </p>
+
+        <br>
+
+        <p>
+            Sesión iniciada como:
+            <strong>
+                {{ current_user["email"] }}
+            </strong>
+        </p>
+
+        <br>
+
+        {% if current_user["is_admin"] %}
+
+            <a
+                href="{{ url_for('admin') }}"
+                class="button"
+            >
+                PANEL DE ADMINISTRADOR
+            </a>
+
+        {% endif %}
+
+    </div>
+
+</section>
+
+
+<section class="lessons">
+
+    <div class="container">
+
+
+        {% with messages = get_flashed_messages() %}
+
+            {% if messages %}
+
+                {% for message in messages %}
+
+                    <div class="alert">
+                        {{ message }}
+                    </div>
+
+                {% endfor %}
+
+            {% endif %}
+
+        {% endwith %}
+
+
+        <div class="card">
+
+            <h2>
+                Tu cuenta
+            </h2>
+
+            <p>
+                Correo:
+                <strong>
+                    {{ current_user["email"] }}
+                </strong>
+            </p>
+
+            <p>
+                Estado:
+                <strong>
+                    Activo
+                </strong>
+            </p>
+
+        </div>
+
+
+        <br>
+
+
+        {% if not current_user["is_admin"] %}
+
+        <div class="card">
+
+            <h2>
+                Activar administrador
+            </h2>
+
+            <p>
+                Introduce tu código de administrador.
+            </p>
+
+            <br>
+
+            <form
+                method="POST"
+                action="{{ url_for('activate_admin') }}"
+            >
+
+                <input
+                    type="password"
+                    name="admin_code"
+                    placeholder="Código de administrador"
+                    required
+                    autocomplete="off"
+                    style="
+                        width:100%;
+                        max-width:500px;
+                        padding:14px;
+                        margin-bottom:12px;
+                        background:#05070d;
+                        color:white;
+                        border:1px solid #24344d;
+                        border-radius:10px;
+                        outline:none;
+                    "
+                >
+
+                <br>
+
+                <button
+                    type="submit"
+                    class="button"
+                >
+                    ACTIVAR ADMIN
+                </button>
+
+            </form>
+
+        </div>
+
+        <br>
+
+        {% endif %}
+
+
+        <h2>
+            Tus lecciones
+        </h2>
+
+        <p>
+            Aprende paso a paso.
+        </p>
+
+
+        <div class="lesson-grid">
+
+            {% for lesson in lessons %}
+
+            <div class="lesson-card">
+
+                <div class="lesson-number">
+                    LECCIÓN {{ loop.index }}
+                </div>
+
+                <h3>
+                    {{ lesson[0] }}
+                </h3>
+
+                <p>
+                    {{ lesson[1] }}
+                </p>
+
+                <br>
+
+                <a
+                    href="{{ url_for('lesson', number=loop.index) }}"
+                    class="button"
+                >
+                    ENTRAR
+                </a>
+
+            </div>
+
+            {% endfor %}
+
+        </div>
+
+
+        <br>
+        <br>
+
+
+        <form
+            method="POST"
+            action="{{ url_for('logout') }}"
+        >
+
+            <button
+                type="submit"
+                class="button"
+            >
+                CERRAR SESIÓN
+            </button>
+
+        </form>
+
+
+    </div>
+
+</section>
+
+
+<section class="security">
+
+    <div class="container">
+
+        <div class="security-box">
+
+            <h2>
+                Seguridad
+            </h2>
+
+            <ul>
+
+                <li>
+                    Cuentas individuales.
+                </li>
+
+                <li>
+                    Contraseñas protegidas mediante hash.
+                </li>
+
+                <li>
+                    Acceso protegido a las lecciones.
+                </li>
+
+                <li>
+                    Panel administrativo restringido.
+                </li>
+
+                <li>
+                    Sistema de bloqueo de cuentas.
+                </li>
+
+            </ul>
+
+        </div>
+
+    </div>
+
+</section>
+
+
+<footer>
+
+    Academy Blox Script
+
+</footer>
+
+
+</body>
+
+</html>
