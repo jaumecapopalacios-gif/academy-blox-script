@@ -1,28 +1,13 @@
 import os
 import sqlite3
 
-from flask import (
-    Flask,
-    render_template,
-    request,
-    redirect,
-    url_for,
-    session,
-    flash
-)
-
-from werkzeug.security import (
-    generate_password_hash,
-    check_password_hash
-)
+from flask import Flask, render_template, request, redirect, url_for, session, flash
+from werkzeug.security import generate_password_hash, check_password_hash
 
 
 app = Flask(__name__)
 
-app.secret_key = os.environ.get(
-    "SECRET_KEY",
-    "academy-blox-secret"
-)
+app.secret_key = "academy-blox-secret"
 
 
 DATABASE = "academy.db"
@@ -35,11 +20,11 @@ LESSONS = [
     },
     {
         "title": "Primer Script en Luau",
-        "description": "Crea tu primer código en Roblox."
+        "description": "Aprende a programar en Roblox."
     },
     {
         "title": "Variables",
-        "description": "Guarda información usando variables."
+        "description": "Aprende variables en Luau."
     }
 ]
 
@@ -48,7 +33,6 @@ def get_db():
     db = sqlite3.connect(DATABASE)
     db.row_factory = sqlite3.Row
     return db
-
 
 
 def init_db():
@@ -67,9 +51,7 @@ def init_db():
     db.close()
 
 
-
 init_db()
-
 
 
 def current_user():
@@ -96,62 +78,47 @@ def index():
     user = current_user()
 
     if not user:
-        return redirect(
-            url_for("login")
-        )
+        return redirect(url_for("login"))
 
     return render_template(
         "index.html",
         user=user,
         lessons=LESSONS
     )
-    @app.route("/register", methods=["GET", "POST"])
+
+
+
+@app.route("/register", methods=["GET", "POST"])
 def register():
 
     if request.method == "POST":
 
-        email = request.form.get("email", "").lower().strip()
-        password = request.form.get("password", "")
-
-        if not email or not password:
-            flash("Completa todos los campos.")
-            return redirect(url_for("register"))
-
+        email = request.form["email"]
+        password = request.form["password"]
 
         db = get_db()
 
-        existe = db.execute(
-            "SELECT id FROM users WHERE email=?",
-            (email,)
-        ).fetchone()
-
-
-        if existe:
-            db.close()
-            flash("Ese correo ya existe.")
-            return redirect(url_for("register"))
-
-
         password_hash = generate_password_hash(password)
 
+        try:
 
-        db.execute(
-            """
-            INSERT INTO users(email, password)
-            VALUES (?,?)
-            """,
-            (
-                email,
-                password_hash
+            db.execute(
+                "INSERT INTO users(email,password) VALUES(?,?)",
+                (email,password_hash)
             )
-        )
 
+            db.commit()
 
-        db.commit()
+        except:
+
+            flash("Ese usuario ya existe.")
+
+            return redirect(
+                url_for("register")
+            )
+
         db.close()
 
-
-        flash("Cuenta creada.")
         return redirect(
             url_for("login")
         )
@@ -163,53 +130,38 @@ def register():
 
 
 
-@app.route("/login", methods=["GET", "POST"])
+@app.route("/login", methods=["GET","POST"])
 def login():
 
     if request.method == "POST":
 
-        email = request.form.get("email", "").lower().strip()
-        password = request.form.get("password", "")
+        email = request.form["email"]
+        password = request.form["password"]
 
 
         db = get_db()
 
         user = db.execute(
-            """
-            SELECT *
-            FROM users
-            WHERE email=?
-            """,
+            "SELECT * FROM users WHERE email=?",
             (email,)
         ).fetchone()
-
 
         db.close()
 
 
-        if not user:
-            flash("Usuario incorrecto.")
-            return redirect(
-                url_for("login")
-            )
-
-
-        if not check_password_hash(
+        if user and check_password_hash(
             user["password"],
             password
         ):
-            flash("Contraseña incorrecta.")
+
+            session["user_id"] = user["id"]
+
             return redirect(
-                url_for("login")
+                url_for("index")
             )
 
 
-        session["user_id"] = user["id"]
-
-
-        return redirect(
-            url_for("index")
-        )
+        flash("Datos incorrectos.")
 
 
     return render_template(
@@ -239,32 +191,21 @@ def lesson(number):
             url_for("login")
         )
 
-
-    if number < 1 or number > len(LESSONS):
-        return "Lección no encontrada", 404
-
-
-    lesson_data = LESSONS[number-1]
-
-
     return render_template(
         "lesson.html",
-        lesson=lesson_data,
-        number=number
+        lesson=LESSONS[number-1]
     )
 
 
 
 if __name__ == "__main__":
 
-    port = int(
-        os.environ.get(
-            "PORT",
-            5000
-        )
-    )
-
     app.run(
         host="0.0.0.0",
-        port=port
+        port=int(
+            os.environ.get(
+                "PORT",
+                5000
+            )
+        )
     )
