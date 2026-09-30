@@ -18,26 +18,21 @@ from werkzeug.security import (
     check_password_hash
 )
 
-
 try:
     from openai import OpenAI
 except ImportError:
     OpenAI = None
 
 
-
 app = Flask(__name__)
-
 
 app.secret_key = os.environ.get(
     "SECRET_KEY",
-    "academy-blox-secret"
+    "academy-blox-secret-key"
 )
 
 
-
 DATABASE = "academy.db"
-
 
 
 ADMIN_CODE = os.environ.get(
@@ -46,40 +41,33 @@ ADMIN_CODE = os.environ.get(
 )
 
 
-
 OPENAI_API_KEY = os.environ.get(
     "OPENAI_API_KEY"
 )
 
 
-
 AI_LIMIT = 10
-
 
 
 ai_client = None
 
 
 if OPENAI_API_KEY and OpenAI:
-
     try:
         ai_client = OpenAI(
             api_key=OPENAI_API_KEY
         )
-
     except Exception:
-
         ai_client = None
-
-
 
 
 
 LESSONS = [
 
     {
+        "id": 1,
         "title": "Introducción a Roblox Studio",
-        "description": "Aprende los conceptos básicos.",
+        "description": "Aprende las bases de Roblox Studio.",
         "content": """
 Roblox Studio permite crear juegos y experiencias.
 
@@ -89,9 +77,12 @@ Puedes crear mapas, sistemas y scripts.
 
 
     {
-        "title": "Primer Script Luau",
-        "description": "Aprende tu primer código.",
+        "id": 2,
+        "title": "Primer Script en Luau",
+        "description": "Crea tu primer código.",
         "content": """
+Los scripts usan Luau.
+
 Ejemplo:
 
 print("Hola Roblox")
@@ -100,12 +91,29 @@ print("Hola Roblox")
 
 
     {
+        "id": 3,
         "title": "Variables",
-        "description": "Guarda información con variables.",
+        "description": "Aprende a guardar información.",
         "content": """
 Ejemplo:
 
 local monedas = 100
+
+print(monedas)
+"""
+    },
+
+
+    {
+        "id": 4,
+        "title": "Eventos",
+        "description": "Haz que los objetos reaccionen.",
+        "content": """
+Ejemplo:
+
+part.Touched:Connect(function()
+    print("Tocado")
+end)
 """
     }
 
@@ -113,79 +121,98 @@ local monedas = 100
 
 
 
-
-
 def db():
 
-    con = sqlite3.connect(
+    connection = sqlite3.connect(
         DATABASE
     )
 
-    con.row_factory = sqlite3.Row
+    connection.row_factory = sqlite3.Row
 
-    return con
-
-
+    return connection
 
 
 
-def init_db():
+def init_database():
 
-    con = db()
+    connection = db()
 
 
-    con.execute("""
-    CREATE TABLE IF NOT EXISTS users(
+    connection.execute(
+        """
+        CREATE TABLE IF NOT EXISTS users(
 
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
 
-        email TEXT UNIQUE,
+            email TEXT UNIQUE NOT NULL,
 
-        password TEXT,
+            password TEXT NOT NULL,
 
-        is_admin INTEGER DEFAULT 0
+            is_admin INTEGER DEFAULT 0,
 
+            created TEXT
+
+        )
+        """
     )
-    """)
 
 
-    con.commit()
+    connection.execute(
+        """
+        CREATE TABLE IF NOT EXISTS ai_usage(
 
-    con.close()
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+
+            user_id INTEGER,
+
+            day TEXT,
+
+            amount INTEGER DEFAULT 0
+
+        )
+        """
+    )
+
+
+    connection.commit()
+
+    connection.close()
 
 
 
-
-
-init_db()
-
+init_database()
 
 
 
 
 def current_user():
 
+    user_id = session.get(
+        "user_id"
+    )
 
-    if "user_id" not in session:
+
+    if not user_id:
 
         return None
 
 
-    con = db()
+
+    connection = db()
 
 
-    user = con.execute(
-
-        "SELECT * FROM users WHERE id=?",
-
-        (
-            session["user_id"],
-        )
-
+    user = connection.execute(
+        """
+        SELECT *
+        FROM users
+        WHERE id=?
+        """,
+        (user_id,)
     ).fetchone()
 
 
-    con.close()
+
+    connection.close()
 
 
     return user
@@ -193,13 +220,19 @@ def current_user():
 
 
 
-
-
 def logged():
 
     return "user_id" in session
-    @app.route("/")
-def index():
+
+
+
+
+
+@app.route("/")
+
+
+def home():
+
 
     if not logged():
 
@@ -218,7 +251,11 @@ def index():
 
 
 
-@app.route("/register", methods=["GET", "POST"])
+@app.route(
+    "/register",
+    methods=["GET","POST"]
+)
+
 def register():
 
 
@@ -226,21 +263,21 @@ def register():
 
 
         email = request.form.get(
-            "email",
-            ""
-        ).strip().lower()
+            "email"
+        ).lower().strip()
+
 
 
         password = request.form.get(
-            "password",
-            ""
+            "password"
         )
+
 
 
         if not email or not password:
 
             flash(
-                "Completa todos los campos"
+                "Completa los datos"
             )
 
             return redirect(
@@ -249,28 +286,43 @@ def register():
 
 
 
-        con = db()
+        connection = db()
 
 
-        existe = con.execute(
 
-            "SELECT id FROM users WHERE email=?",
+        try:
 
-            (
+            connection.execute(
+                """
+                INSERT INTO users
+                (
                 email,
+                password,
+                created
+                )
+                VALUES
+                (?,?,?)
+                """,
+                (
+                    email,
+                    generate_password_hash(password),
+                    date.today()
+                )
             )
 
-        ).fetchone()
+
+            connection.commit()
 
 
 
-        if existe:
-
-            con.close()
+        except:
 
             flash(
-                "Ese correo ya existe"
+                "El usuario ya existe"
             )
+
+            connection.close()
+
 
             return redirect(
                 url_for("register")
@@ -278,35 +330,8 @@ def register():
 
 
 
-        password_hash = generate_password_hash(
-            password
-        )
+        connection.close()
 
-
-
-        con.execute(
-
-            """
-            INSERT INTO users(email,password)
-            VALUES(?,?)
-            """,
-
-            (
-                email,
-                password_hash
-            )
-
-        )
-
-
-        con.commit()
-
-        con.close()
-
-
-        flash(
-            "Cuenta creada"
-        )
 
 
         return redirect(
@@ -323,8 +348,11 @@ def register():
 
 
 
+@app.route(
+    "/login",
+    methods=["GET","POST"]
+)
 
-@app.route("/login", methods=["GET", "POST"])
 def login():
 
 
@@ -332,77 +360,52 @@ def login():
 
 
         email = request.form.get(
-            "email",
-            ""
-        ).strip().lower()
+            "email"
+        ).lower().strip()
 
 
 
         password = request.form.get(
-            "password",
-            ""
+            "password"
         )
 
 
 
-        con = db()
+        connection = db()
 
 
-
-        user = con.execute(
-
-            "SELECT * FROM users WHERE email=?",
-
-            (
-                email,
-            )
-
+        user = connection.execute(
+            """
+            SELECT *
+            FROM users
+            WHERE email=?
+            """,
+            (email,)
         ).fetchone()
 
 
 
-        con.close()
+        connection.close()
 
 
 
-        if not user:
-
-
-            flash(
-                "Datos incorrectos"
-            )
-
-            return redirect(
-                url_for("login")
-            )
-
-
-
-        if not check_password_hash(
-
+        if user and check_password_hash(
             user["password"],
-
             password
-
         ):
 
 
-            flash(
-                "Datos incorrectos"
-            )
+            session["user_id"] = user["id"]
+
 
             return redirect(
-                url_for("login")
+                url_for("home")
             )
 
 
 
-        session["user_id"] = user["id"]
-
-
-
-        return redirect(
-            url_for("index")
+        flash(
+            "Datos incorrectos"
         )
 
 
@@ -410,7 +413,7 @@ def login():
     return render_template(
         "login.html"
     )
-    @app.route("/logout")
+    @app.route("/logout", methods=["POST"])
 def logout():
 
     session.clear()
@@ -422,9 +425,8 @@ def logout():
 
 
 
-
-@app.route("/lesson/<int:number>")
-def lesson(number):
+@app.route("/lesson/<int:id>")
+def lesson(id):
 
     if not logged():
 
@@ -433,14 +435,26 @@ def lesson(number):
         )
 
 
-    if number < 1 or number > len(LESSONS):
+    selected = None
 
-        return "Lección no encontrada", 404
+
+    for lesson in LESSONS:
+
+        if lesson["id"] == id:
+
+            selected = lesson
+
+
+
+    if not selected:
+
+        return "Lección no encontrada",404
+
 
 
     return render_template(
         "lesson.html",
-        lesson=LESSONS[number-1],
+        lesson=selected,
         current_user=current_user()
     )
 
@@ -448,8 +462,11 @@ def lesson(number):
 
 
 
+@app.route(
+    "/activate-admin",
+    methods=["POST"]
+)
 
-@app.route("/activate-admin", methods=["POST"])
 def activate_admin():
 
 
@@ -462,22 +479,19 @@ def activate_admin():
 
 
     code = request.form.get(
-        "admin_code",
-        ""
+        "code"
     )
 
 
 
     if code != ADMIN_CODE:
 
-
         flash(
             "Código incorrecto"
         )
 
-
         return redirect(
-            url_for("index")
+            url_for("home")
         )
 
 
@@ -486,29 +500,24 @@ def activate_admin():
 
 
 
-    con = db()
+    connection = db()
 
 
 
-    con.execute(
-
+    connection.execute(
         """
         UPDATE users
         SET is_admin=1
         WHERE id=?
         """,
-
-        (
-            user["id"],
-        )
-
+        (user["id"],)
     )
 
 
 
-    con.commit()
+    connection.commit()
 
-    con.close()
+    connection.close()
 
 
 
@@ -518,9 +527,8 @@ def activate_admin():
 
 
     return redirect(
-        url_for("index")
+        url_for("admin")
     )
-
 
 
 
@@ -545,177 +553,34 @@ def admin():
 
     if not user["is_admin"]:
 
-
-        flash(
-            "No tienes permisos"
-        )
-
-
         return redirect(
-            url_for("index")
+            url_for("home")
         )
 
 
 
-    con = db()
+    connection = db()
 
 
 
-    users = con.execute(
-
-        "SELECT * FROM users"
-
+    users = connection.execute(
+        """
+        SELECT *
+        FROM users
+        ORDER BY id DESC
+        """
     ).fetchall()
 
 
 
-    con.close()
+    connection.close()
 
 
 
     return render_template(
-
         "admin.html",
-
         users=users,
-
         current_user=user
-
-    )
-    @app.route("/admin/console", methods=["POST"])
-def admin_console():
-
-
-    if not logged():
-
-        return redirect(
-            url_for("login")
-        )
-
-
-    user = current_user()
-
-
-    if not user["is_admin"]:
-
-        return redirect(
-            url_for("index")
-        )
-
-
-
-    command = request.form.get(
-        "command",
-        ""
-    ).strip()
-
-
-
-    parts = command.split()
-
-
-
-    if not parts:
-
-        flash(
-            "Escribe un comando"
-        )
-
-        return redirect(
-            url_for("admin")
-        )
-
-
-
-    action = parts[0].lower()
-
-
-
-    con = db()
-
-
-
-    if action == "users":
-
-
-        users = con.execute(
-
-            "SELECT email,is_admin FROM users"
-
-        ).fetchall()
-
-
-
-        for u in users:
-
-            flash(
-                f'{u["email"]} Admin:{u["is_admin"]}'
-            )
-
-
-
-    elif action == "makeadmin" and len(parts) > 1:
-
-
-        con.execute(
-
-            """
-            UPDATE users
-            SET is_admin=1
-            WHERE email=?
-            """,
-
-            (
-                parts[1],
-            )
-
-        )
-
-        flash(
-            "Administrador creado"
-        )
-
-
-
-    elif action == "delete" and len(parts) > 1:
-
-
-        con.execute(
-
-            """
-            DELETE FROM users
-            WHERE email=?
-            """,
-
-            (
-                parts[1],
-            )
-
-        )
-
-
-        flash(
-            "Usuario eliminado"
-        )
-
-
-
-    else:
-
-        flash(
-            "Comandos: users, makeadmin correo, delete correo"
-        )
-
-
-
-    con.commit()
-
-    con.close()
-
-
-
-    return redirect(
-        url_for("admin")
     )
 
 
@@ -723,33 +588,11 @@ def admin_console():
 
 
 
+@app.route(
+    "/ai/chat",
+    methods=["POST"]
+)
 
-# =========================
-# ACADEMY AI
-# =========================
-
-
-@app.route("/ai")
-def ai():
-
-
-    if not logged():
-
-        return redirect(
-            url_for("login")
-        )
-
-
-    return render_template(
-        "ai.html"
-    )
-
-
-
-
-
-
-@app.route("/ai/chat", methods=["POST"])
 def ai_chat():
 
 
@@ -757,9 +600,23 @@ def ai_chat():
 
         return jsonify(
             {
-                "error":"No conectado"
+                "error":"Inicia sesión"
             }
-        )
+        ),401
+
+
+
+    user = current_user()
+
+
+
+    if not user:
+
+        return jsonify(
+            {
+                "error":"Usuario inválido"
+            }
+        ),401
 
 
 
@@ -774,17 +631,29 @@ def ai_chat():
 
 
 
+    if not question:
+
+        return jsonify(
+            {
+                "error":"Escribe una pregunta"
+            }
+        ),400
+
+
+
+
+
     if ai_client is None:
 
 
         return jsonify(
-
             {
-                "answer":
-                "La IA no está configurada todavía."
+                "error":
+                "IA no configurada"
             }
-
         )
+
+
 
 
 
@@ -795,6 +664,23 @@ def ai_chat():
 
             model="gpt-5.6-luna",
 
+            instructions="""
+
+Eres Academy AI.
+
+Ayudas a aprender:
+
+- Roblox Studio
+- Luau
+- programación
+- creación de videojuegos
+
+Responde en español.
+
+Explica paso a paso para principiantes.
+
+""",
+
             input=question
 
         )
@@ -802,25 +688,26 @@ def ai_chat():
 
 
         return jsonify(
-
             {
                 "answer":
                 response.output_text
             }
-
         )
 
 
-    except Exception:
+
+    except Exception as error:
+
+
+        print(error)
+
 
 
         return jsonify(
-
             {
-                "answer":
-                "Error conectando con la IA."
+                "error":
+                "Error conectando con IA"
             }
-
         )
 
 
@@ -828,24 +715,124 @@ def ai_chat():
 
 
 
+@app.route("/admin/console", methods=["POST"])
+def admin_console():
 
-if __name__ == "__main__":
+
+    if not logged():
+
+        return redirect(
+            url_for("login")
+        )
 
 
-    port = int(
 
+    user=current_user()
+
+
+
+    if not user["is_admin"]:
+
+        return redirect(
+            url_for("home")
+        )
+
+
+
+    command=request.form.get(
+        "command"
+    )
+
+
+
+    connection=db()
+
+
+
+    if command=="users":
+
+
+        users=connection.execute(
+            """
+            SELECT email,is_admin
+            FROM users
+            """
+        ).fetchall()
+
+
+
+        for u in users:
+
+            flash(
+                u["email"]
+            )
+
+
+
+    elif command.startswith(
+        "delete "
+    ):
+
+
+        email=command.replace(
+            "delete ",
+            ""
+        )
+
+
+
+        connection.execute(
+            """
+            DELETE FROM users
+            WHERE email=?
+            """,
+            (email,)
+        )
+
+
+        flash(
+            "Usuario eliminado"
+        )
+
+
+
+    else:
+
+
+        flash(
+            "Comando no encontrado"
+        )
+
+
+
+    connection.commit()
+
+    connection.close()
+
+
+
+    return redirect(
+        url_for("admin")
+    )
+
+
+
+
+
+
+
+if __name__=="__main__":
+
+
+    port=int(
         os.environ.get(
             "PORT",
             5000
         )
-
     )
 
 
     app.run(
-
         host="0.0.0.0",
-
         port=port
-
     )
