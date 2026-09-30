@@ -3,13 +3,12 @@
 
 <head>
 
-<meta charset="UTF-8">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-<title>
-Academy AI
-</title>
+    <title>Academy AI - Academy Blox Script</title>
 
-<link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 
 </head>
 
@@ -17,123 +16,108 @@ Academy AI
 <body>
 
 
-<header>
+<header class="navbar">
 
-<h1>
-🤖 Academy AI
-</h1>
+    <div class="logo">
+        🤖 Academy AI
+    </div>
+
+
+    <nav>
+
+        <a href="{{ url_for('index') }}">
+            Inicio
+        </a>
+
+
+        <a href="{{ url_for('logout') }}">
+            Salir
+        </a>
+
+    </nav>
+
 
 </header>
 
 
 
-<div class="container">
+
+<main class="ai-container">
 
 
-<div class="card">
+    <div class="ai-card">
 
 
-<h2>
-Asistente de Roblox Studio
-</h2>
+        <h1>
+            🤖 Asistente Academy Blox
+        </h1>
 
+
+        <p>
+            Pregunta sobre scripts, Roblox Studio o programación.
+        </p>
+
+
+
+        <form method="POST">
+
+
+            <textarea
+            name="message"
+            placeholder="Escribe tu pregunta..."
+            rows="5"
+            required></textarea>
+
+
+
+            <button type="submit">
+                Enviar
+            </button>
+
+
+        </form>
+
+
+
+
+        {% if response %}
+
+
+        <div class="ai-response">
+
+
+            <h2>
+                Respuesta:
+            </h2>
+
+
+            <p>
+                {{ response }}
+            </p>
+
+
+        </div>
+
+
+        {% endif %}
+
+
+
+    </div>
+
+
+</main>
+
+
+
+
+<footer>
 
 <p>
-Pregunta sobre Luau, Roblox Studio o creación de juegos.
+© 2026 Academy Blox Script
 </p>
 
-
-
-<textarea
-id="question"
-placeholder="Escribe tu pregunta..."
-></textarea>
-
-
-
-<button
-class="button"
-onclick="sendAI()"
->
-Preguntar
-</button>
-
-
-
-<div id="answer" class="card">
-
-Respuesta aparecerá aquí.
-
-</div>
-
-
-</div>
-
-
-</div>
-
-
-
-
-<script>
-
-
-async function sendAI(){
-
-
-let question =
-document.getElementById("question").value;
-
-
-
-let answer =
-document.getElementById("answer");
-
-
-
-answer.innerHTML =
-"Pensando...";
-
-
-
-let response =
-await fetch(
-"/ai/chat",
-{
-
-method:"POST",
-
-headers:
-{
-"Content-Type":"application/json"
-},
-
-body:
-JSON.stringify(
-{
-question:question
-}
-)
-
-}
-
-);
-
-
-
-let data =
-await response.json();
-
-
-
-answer.innerHTML =
-data.answer;
-
-
-}
-
-
-</script>
+</footer>
 
 
 
