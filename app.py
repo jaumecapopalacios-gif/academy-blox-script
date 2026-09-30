@@ -34,7 +34,6 @@ app.secret_key = os.environ.get(
 
 DATABASE = "academy.db"
 
-
 ADMIN_CODE = os.environ.get(
     "ADMIN_CODE",
     "BLOX-ADMIN-9382"
@@ -69,31 +68,26 @@ LESSONS = [
         "title": "Introducción a Roblox Studio",
         "description": "Aprende las bases de Roblox Studio.",
         "content": """
-Roblox Studio permite crear juegos y experiencias.
-
-Puedes crear mapas, sistemas y scripts.
+Roblox Studio permite crear experiencias,
+mapas y videojuegos usando Luau.
 """
     },
-
 
     {
         "id": 2,
         "title": "Primer Script en Luau",
-        "description": "Crea tu primer código.",
+        "description": "Aprende tu primer código.",
         "content": """
-Los scripts usan Luau.
-
 Ejemplo:
 
 print("Hola Roblox")
 """
     },
 
-
     {
         "id": 3,
         "title": "Variables",
-        "description": "Aprende a guardar información.",
+        "description": "Guarda información en tus scripts.",
         "content": """
 Ejemplo:
 
@@ -102,7 +96,6 @@ local monedas = 100
 print(monedas)
 """
     },
-
 
     {
         "id": 4,
@@ -133,45 +126,42 @@ def db():
 
 
 
+
 def init_database():
 
     connection = db()
 
 
-    connection.execute(
-        """
-        CREATE TABLE IF NOT EXISTS users(
+    connection.execute("""
+    CREATE TABLE IF NOT EXISTS users(
 
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
 
-            email TEXT UNIQUE NOT NULL,
+        email TEXT UNIQUE NOT NULL,
 
-            password TEXT NOT NULL,
+        password TEXT NOT NULL,
 
-            is_admin INTEGER DEFAULT 0,
+        is_admin INTEGER DEFAULT 0,
 
-            created TEXT
+        created TEXT
 
-        )
-        """
     )
+    """)
 
 
-    connection.execute(
-        """
-        CREATE TABLE IF NOT EXISTS ai_usage(
+    connection.execute("""
+    CREATE TABLE IF NOT EXISTS ai_usage(
 
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
 
-            user_id INTEGER,
+        user_id INTEGER,
 
-            day TEXT,
+        day TEXT,
 
-            amount INTEGER DEFAULT 0
+        amount INTEGER DEFAULT 0
 
-        )
-        """
     )
+    """)
 
 
     connection.commit()
@@ -191,11 +181,8 @@ def current_user():
         "user_id"
     )
 
-
     if not user_id:
-
         return None
-
 
 
     connection = db()
@@ -211,9 +198,7 @@ def current_user():
     ).fetchone()
 
 
-
     connection.close()
-
 
     return user
 
@@ -223,16 +208,8 @@ def current_user():
 def logged():
 
     return "user_id" in session
-
-
-
-
-
-@app.route("/")
-
-
+    @app.route("/")
 def home():
-
 
     if not logged():
 
@@ -250,34 +227,30 @@ def home():
 
 
 
-
 @app.route(
     "/register",
     methods=["GET","POST"]
 )
-
 def register():
-
 
     if request.method == "POST":
 
-
         email = request.form.get(
-            "email"
+            "email",
+            ""
         ).lower().strip()
 
 
-
         password = request.form.get(
-            "password"
+            "password",
+            ""
         )
-
 
 
         if not email or not password:
 
             flash(
-                "Completa los datos"
+                "Completa todos los datos"
             )
 
             return redirect(
@@ -285,9 +258,7 @@ def register():
             )
 
 
-
         connection = db()
-
 
 
         try:
@@ -296,9 +267,9 @@ def register():
                 """
                 INSERT INTO users
                 (
-                email,
-                password,
-                created
+                    email,
+                    password,
+                    created
                 )
                 VALUES
                 (?,?,?)
@@ -306,7 +277,7 @@ def register():
                 (
                     email,
                     generate_password_hash(password),
-                    date.today()
+                    str(date.today())
                 )
             )
 
@@ -314,30 +285,30 @@ def register():
             connection.commit()
 
 
-
         except:
+
+            connection.close()
 
             flash(
                 "El usuario ya existe"
             )
-
-            connection.close()
-
 
             return redirect(
                 url_for("register")
             )
 
 
-
         connection.close()
 
+
+        flash(
+            "Cuenta creada"
+        )
 
 
         return redirect(
             url_for("login")
         )
-
 
 
     return render_template(
@@ -352,23 +323,21 @@ def register():
     "/login",
     methods=["GET","POST"]
 )
-
 def login():
-
 
     if request.method == "POST":
 
 
         email = request.form.get(
-            "email"
+            "email",
+            ""
         ).lower().strip()
 
 
-
         password = request.form.get(
-            "password"
+            "password",
+            ""
         )
-
 
 
         connection = db()
@@ -382,7 +351,6 @@ def login():
             """,
             (email,)
         ).fetchone()
-
 
 
         connection.close()
@@ -403,24 +371,29 @@ def login():
             )
 
 
-
         flash(
-            "Datos incorrectos"
+            "Correo o contraseña incorrectos"
         )
-
 
 
     return render_template(
         "login.html"
     )
-    @app.route("/logout", methods=["POST"])
+
+
+
+
+
+@app.route("/logout")
 def logout():
 
     session.clear()
 
+
     return redirect(
         url_for("login")
     )
+
 
 
 
@@ -438,11 +411,12 @@ def lesson(id):
     selected = None
 
 
-    for lesson in LESSONS:
+    for item in LESSONS:
 
-        if lesson["id"] == id:
+        if item["id"] == id:
 
-            selected = lesson
+            selected = item
+            break
 
 
 
@@ -462,11 +436,11 @@ def lesson(id):
 
 
 
+
 @app.route(
     "/activate-admin",
     methods=["POST"]
 )
-
 def activate_admin():
 
 
@@ -477,11 +451,10 @@ def activate_admin():
         )
 
 
-
     code = request.form.get(
-        "code"
+        "code",
+        ""
     )
-
 
 
     if code != ADMIN_CODE:
@@ -495,13 +468,10 @@ def activate_admin():
         )
 
 
-
     user = current_user()
 
 
-
     connection = db()
-
 
 
     connection.execute(
@@ -514,11 +484,9 @@ def activate_admin():
     )
 
 
-
     connection.commit()
 
     connection.close()
-
 
 
     flash(
@@ -529,15 +497,8 @@ def activate_admin():
     return redirect(
         url_for("admin")
     )
-
-
-
-
-
-
-@app.route("/admin")
+    @app.route("/admin")
 def admin():
-
 
     if not logged():
 
@@ -546,21 +507,21 @@ def admin():
         )
 
 
-
     user = current_user()
 
 
+    if not user or user["is_admin"] != 1:
 
-    if not user["is_admin"]:
+        flash(
+            "No tienes permisos"
+        )
 
         return redirect(
             url_for("home")
         )
 
 
-
     connection = db()
-
 
 
     users = connection.execute(
@@ -572,9 +533,7 @@ def admin():
     ).fetchall()
 
 
-
     connection.close()
-
 
 
     return render_template(
@@ -587,12 +546,30 @@ def admin():
 
 
 
+@app.route(
+    "/ai"
+)
+def ai():
+
+    if not logged():
+
+        return redirect(
+            url_for("login")
+        )
+
+
+    return render_template(
+        "ai.html"
+    )
+
+
+
+
 
 @app.route(
     "/ai/chat",
     methods=["POST"]
 )
-
 def ai_chat():
 
 
@@ -600,51 +577,13 @@ def ai_chat():
 
         return jsonify(
             {
-                "error":"Inicia sesión"
+                "error":"Debes iniciar sesión"
             }
         ),401
-
-
-
-    user = current_user()
-
-
-
-    if not user:
-
-        return jsonify(
-            {
-                "error":"Usuario inválido"
-            }
-        ),401
-
-
-
-    data = request.json
-
-
-
-    question = data.get(
-        "question",
-        ""
-    )
-
-
-
-    if not question:
-
-        return jsonify(
-            {
-                "error":"Escribe una pregunta"
-            }
-        ),400
-
-
 
 
 
     if ai_client is None:
-
 
         return jsonify(
             {
@@ -655,10 +594,27 @@ def ai_chat():
 
 
 
+    data = request.get_json()
+
+
+    question = data.get(
+        "question",
+        ""
+    )
+
+
+    if not question:
+
+        return jsonify(
+            {
+                "error":
+                "Escribe una pregunta"
+            }
+        )
+
 
 
     try:
-
 
         response = ai_client.responses.create(
 
@@ -668,7 +624,7 @@ def ai_chat():
 
 Eres Academy AI.
 
-Ayudas a aprender:
+Ayudas con:
 
 - Roblox Studio
 - Luau
@@ -686,7 +642,6 @@ Explica paso a paso para principiantes.
         )
 
 
-
         return jsonify(
             {
                 "answer":
@@ -695,18 +650,15 @@ Explica paso a paso para principiantes.
         )
 
 
-
     except Exception as error:
 
-
         print(error)
-
 
 
         return jsonify(
             {
                 "error":
-                "Error conectando con IA"
+                "Error conectando con la IA"
             }
         )
 
@@ -715,7 +667,11 @@ Explica paso a paso para principiantes.
 
 
 
-@app.route("/admin/console", methods=["POST"])
+
+@app.route(
+    "/admin/console",
+    methods=["POST"]
+)
 def admin_console():
 
 
@@ -726,12 +682,10 @@ def admin_console():
         )
 
 
-
     user=current_user()
 
 
-
-    if not user["is_admin"]:
+    if not user or user["is_admin"] != 1:
 
         return redirect(
             url_for("home")
@@ -739,9 +693,10 @@ def admin_console():
 
 
 
-    command=request.form.get(
-        "command"
-    )
+    command = request.form.get(
+        "command",
+        ""
+    ).strip()
 
 
 
@@ -749,7 +704,7 @@ def admin_console():
 
 
 
-    if command=="users":
+    if command == "users":
 
 
         users=connection.execute(
@@ -761,10 +716,10 @@ def admin_console():
 
 
 
-        for u in users:
+        for item in users:
 
             flash(
-                u["email"]
+                item["email"]
             )
 
 
@@ -774,7 +729,7 @@ def admin_console():
     ):
 
 
-        email=command.replace(
+        email = command.replace(
             "delete ",
             ""
         )
@@ -798,9 +753,8 @@ def admin_console():
 
     else:
 
-
         flash(
-            "Comando no encontrado"
+            "Comando desconocido"
         )
 
 
@@ -808,7 +762,6 @@ def admin_console():
     connection.commit()
 
     connection.close()
-
 
 
     return redirect(
@@ -820,11 +773,10 @@ def admin_console():
 
 
 
+if __name__ == "__main__":
 
-if __name__=="__main__":
 
-
-    port=int(
+    port = int(
         os.environ.get(
             "PORT",
             5000
