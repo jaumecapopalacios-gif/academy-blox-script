@@ -1,867 +1,248 @@
-/* =========================================================
-   ACADEMY BLOX SCRIPT
-   INTERFAZ GAMER / NEON
-   ========================================================= */
-
-* {
-    box-sizing: border-box;
-    margin: 0;
-    padding: 0;
+*{
+    box-sizing:border-box;
+    font-family:Arial, sans-serif;
 }
 
-html {
-    scroll-behavior: smooth;
+
+body{
+
+    margin:0;
+
+    background:#05070d;
+
+    color:white;
+
 }
 
-body {
-    min-height: 100vh;
-    background:
-        radial-gradient(
-            circle at 20% 10%,
-            rgba(0, 140, 255, 0.10),
-            transparent 30%
-        ),
-        radial-gradient(
-            circle at 80% 20%,
-            rgba(120, 0, 255, 0.08),
-            transparent 30%
-        ),
-        #03050a;
-    color: #ffffff;
-    font-family: Arial, Helvetica, sans-serif;
-    overflow-x: hidden;
+
+
+header{
+
+    padding:25px;
+
+    text-align:center;
+
+    background:#080d18;
+
+    border-bottom:1px solid #00aaff;
+
 }
 
-body::before {
-    content: "";
-    position: fixed;
-    inset: 0;
-    pointer-events: none;
-    background-image:
-        linear-gradient(
-            rgba(255,255,255,0.015) 1px,
-            transparent 1px
-        ),
-        linear-gradient(
-            90deg,
-            rgba(255,255,255,0.015) 1px,
-            transparent 1px
-        );
-    background-size: 40px 40px;
-    mask-image: linear-gradient(
-        to bottom,
-        black,
-        transparent
+
+
+header h1{
+
+    color:#00aaff;
+
+}
+
+
+
+.container{
+
+    width:90%;
+
+    max-width:1100px;
+
+    margin:auto;
+
+    padding:30px;
+
+}
+
+
+
+.hero{
+
+    text-align:center;
+
+    padding:50px 20px;
+
+}
+
+
+
+.hero h2{
+
+    font-size:35px;
+
+    color:#00aaff;
+
+}
+
+
+
+.card{
+
+    background:#0b1220;
+
+    border:1px solid #16314d;
+
+    border-radius:15px;
+
+    padding:25px;
+
+    margin:20px 0;
+
+    box-shadow:0 0 15px #001f33;
+
+}
+
+
+
+.grid{
+
+    display:grid;
+
+    grid-template-columns:repeat(
+        auto-fit,
+        minmax(250px,1fr)
     );
-    z-index: -1;
+
+    gap:20px;
+
 }
 
 
-/* =========================================================
-   GENERAL
-   ========================================================= */
 
-.container {
-    width: min(92%, 1180px);
-    margin: 0 auto;
-}
+.button{
 
-h1,
-h2,
-h3 {
-    line-height: 1.15;
-}
+    display:inline-block;
 
-h1 {
-    font-size: clamp(42px, 7vw, 78px);
-}
+    background:#009dff;
 
-h2 {
-    font-size: 34px;
-}
+    color:white;
 
-h3 {
-    font-size: 21px;
-}
+    padding:12px 25px;
 
-p {
-    color: #99a8bd;
-    line-height: 1.7;
-}
+    border-radius:10px;
 
-a {
-    color: #42aaff;
-    text-decoration: none;
-}
+    text-decoration:none;
 
-a:hover {
-    color: #7bc4ff;
-}
+    border:none;
 
-.blue {
-    color: #168cff;
-}
+    cursor:pointer;
 
-strong {
-    color: #ffffff;
+    font-weight:bold;
+
 }
 
 
-/* =========================================================
-   HEADER
-   ========================================================= */
 
-header {
-    position: sticky;
-    top: 0;
-    z-index: 1000;
+.button:hover{
 
-    width: 100%;
-    padding: 18px 5%;
+    background:#00c3ff;
 
-    background: rgba(3, 5, 10, 0.82);
-    border-bottom: 1px solid rgba(22, 140, 255, 0.18);
-
-    backdrop-filter: blur(16px);
-    -webkit-backdrop-filter: blur(16px);
-}
-
-.logo {
-    display: inline-flex;
-    align-items: center;
-    gap: 10px;
-
-    color: #ffffff;
-    font-size: 20px;
-    font-weight: 900;
-    letter-spacing: 1px;
-
-    text-shadow:
-        0 0 10px rgba(22, 140, 255, 0.8),
-        0 0 30px rgba(22, 140, 255, 0.3);
-}
-
-.logo::before {
-    content: "◆";
-
-    color: #168cff;
-    font-size: 14px;
-
-    text-shadow:
-        0 0 10px #168cff;
 }
 
 
-/* =========================================================
-   BOTONES
-   ========================================================= */
 
-button,
-.button {
-    border: none;
-    font-family: inherit;
-    cursor: pointer;
-}
+input,
+textarea{
 
-.button {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
+    width:100%;
 
-    padding: 13px 21px;
+    padding:15px;
 
-    border-radius: 10px;
+    margin:10px 0;
 
-    background:
-        linear-gradient(
-            135deg,
-            #168cff,
-            #0067d9
-        );
+    background:#05070d;
 
-    color: #ffffff;
+    color:white;
 
-    font-weight: 800;
-    letter-spacing: 0.2px;
+    border:1px solid #16314d;
 
-    box-shadow:
-        0 0 18px rgba(22, 140, 255, 0.25),
-        inset 0 1px rgba(255,255,255,0.12);
+    border-radius:10px;
 
-    transition:
-        transform 0.2s ease,
-        box-shadow 0.2s ease,
-        filter 0.2s ease;
-}
-
-.button:hover {
-    color: #ffffff;
-    transform: translateY(-3px);
-
-    box-shadow:
-        0 0 25px rgba(22, 140, 255, 0.45),
-        0 10px 30px rgba(0, 0, 0, 0.25);
-
-    filter: brightness(1.08);
-}
-
-.button:active {
-    transform: translateY(0);
 }
 
 
-/* =========================================================
-   HERO
-   ========================================================= */
 
-.hero {
-    position: relative;
+textarea{
 
-    min-height: 76vh;
+    min-height:120px;
 
-    display: flex;
-    align-items: center;
-    justify-content: center;
-
-    padding: 90px 20px;
-
-    text-align: center;
-
-    overflow: hidden;
-}
-
-.hero::before {
-    content: "";
-
-    position: absolute;
-
-    width: 520px;
-    height: 520px;
-
-    border-radius: 50%;
-
-    background:
-        radial-gradient(
-            circle,
-            rgba(22, 140, 255, 0.20),
-            transparent 68%
-        );
-
-    filter: blur(12px);
-
-    pointer-events: none;
-}
-
-.hero::after {
-    content: "";
-
-    position: absolute;
-    inset: 0;
-
-    background:
-        linear-gradient(
-            180deg,
-            transparent,
-            rgba(3,5,10,0.5)
-        );
-
-    pointer-events: none;
-}
-
-.hero > div {
-    position: relative;
-    z-index: 2;
-}
-
-.hero h1 {
-    margin: 15px 0 20px;
-
-    font-weight: 900;
-
-    text-shadow:
-        0 0 20px rgba(22, 140, 255, 0.20);
-}
-
-.hero p {
-    max-width: 750px;
-    margin-left: auto;
-    margin-right: auto;
-
-    font-size: 18px;
-}
-
-.hero .blue {
-    text-shadow:
-        0 0 12px rgba(22, 140, 255, 0.65);
 }
 
 
-/* =========================================================
-   SECCIONES
-   ========================================================= */
 
-.lessons {
-    padding: 95px 0;
-}
+.box{
 
-.security {
-    padding: 95px 0;
+    width:90%;
 
-    background:
-        linear-gradient(
-            180deg,
-            transparent,
-            rgba(22, 140, 255, 0.025)
-        );
-}
+    max-width:450px;
 
-section > .container > h1,
-section > .container > h2 {
-    margin-bottom: 15px;
+    margin:100px auto;
+
+    background:#0b1220;
+
+    padding:30px;
+
+    border-radius:15px;
+
+    text-align:center;
+
 }
 
 
-/* =========================================================
-   GRID DE LECCIONES
-   ========================================================= */
 
-.lesson-grid {
-    display: grid;
+pre{
 
-    grid-template-columns:
-        repeat(3, minmax(0, 1fr));
+    white-space:pre-wrap;
 
-    gap: 22px;
+    color:#ddd;
 
-    margin-top: 38px;
-}
+    font-size:16px;
 
-.lesson-card {
-    position: relative;
-
-    min-height: 250px;
-
-    padding: 27px;
-
-    border: 1px solid rgba(37, 58, 89, 0.85);
-    border-radius: 18px;
-
-    background:
-        linear-gradient(
-            145deg,
-            rgba(10,17,29,0.96),
-            rgba(5,9,16,0.94)
-        );
-
-    box-shadow:
-        0 10px 35px rgba(0, 0, 0, 0.28);
-
-    overflow: hidden;
-
-    transition:
-        transform 0.25s ease,
-        border-color 0.25s ease,
-        box-shadow 0.25s ease;
-}
-
-.lesson-card::before {
-    content: "";
-
-    position: absolute;
-
-    width: 150px;
-    height: 150px;
-
-    top: -70px;
-    right: -70px;
-
-    background: #168cff;
-
-    opacity: 0.07;
-
-    border-radius: 50%;
-
-    filter: blur(10px);
-}
-
-.lesson-card:hover {
-    transform: translateY(-8px);
-
-    border-color: rgba(22, 140, 255, 0.85);
-
-    box-shadow:
-        0 20px 45px rgba(0, 0, 0, 0.35),
-        0 0 25px rgba(22, 140, 255, 0.10);
-}
-
-.lesson-card h3 {
-    margin-bottom: 12px;
-}
-
-.lesson-card p {
-    margin-bottom: 20px;
-}
-
-.lesson-number {
-    display: inline-block;
-
-    margin-bottom: 17px;
-    padding: 7px 10px;
-
-    border: 1px solid rgba(22, 140, 255, 0.25);
-    border-radius: 999px;
-
-    background: rgba(22, 140, 255, 0.07);
-
-    color: #42aaff;
-
-    font-size: 12px;
-    font-weight: 900;
-    letter-spacing: 1px;
 }
 
 
-/* =========================================================
-   TARJETAS
-   ========================================================= */
 
-.card,
-.security-box,
-.login-box {
-    border: 1px solid rgba(37, 58, 89, 0.85);
-    border-radius: 18px;
+a{
 
-    background:
-        linear-gradient(
-            145deg,
-            rgba(10,17,29,0.97),
-            rgba(5,9,16,0.97)
-        );
+    color:#00aaff;
 
-    box-shadow:
-        0 15px 40px rgba(0,0,0,0.28);
-}
-
-.card {
-    padding: 28px;
-}
-
-.card:hover {
-    border-color: rgba(22, 140, 255, 0.65);
 }
 
 
-/* =========================================================
-   SEGURIDAD
-   ========================================================= */
 
-.security-box {
-    position: relative;
-    padding: 32px;
+.lesson-card{
 
-    overflow: hidden;
-}
+    background:#0b1220;
 
-.security-box::after {
-    content: "SECURE";
+    padding:20px;
 
-    position: absolute;
+    border-radius:15px;
 
-    top: 25px;
-    right: 25px;
-
-    color: rgba(22, 140, 255, 0.12);
-
-    font-size: 44px;
-    font-weight: 900;
-    letter-spacing: 4px;
-}
-
-.security-box ul {
-    list-style: none;
-    margin-top: 22px;
-}
-
-.security-box li {
-    position: relative;
-
-    margin: 14px 0;
-    padding-left: 28px;
-
-    color: #99a8bd;
-}
-
-.security-box li::before {
-    content: "✓";
-
-    position: absolute;
-    left: 0;
-    top: 0;
-
-    color: #42aaff;
-
-    font-weight: 900;
 }
 
 
-/* =========================================================
-   LOGIN / REGISTRO
-   ========================================================= */
 
-.login-page {
-    min-height: 100vh;
+.alert{
 
-    display: flex;
-    align-items: center;
-    justify-content: center;
+    background:#ff3333;
 
-    padding: 25px;
+    padding:10px;
 
-    background:
-        radial-gradient(
-            circle at center,
-            rgba(22, 140, 255, 0.12),
-            transparent 38%
-        );
-}
+    border-radius:10px;
 
-.login-box {
-    position: relative;
-
-    width: min(100%, 450px);
-
-    padding: 38px;
-
-    overflow: hidden;
-}
-
-.login-box::before {
-    content: "";
-
-    position: absolute;
-
-    left: 50%;
-    top: -120px;
-
-    width: 280px;
-    height: 280px;
-
-    transform: translateX(-50%);
-
-    border-radius: 50%;
-
-    background:
-        radial-gradient(
-            circle,
-            rgba(22, 140, 255, 0.16),
-            transparent 68%
-        );
-
-    pointer-events: none;
-}
-
-.login-box h1 {
-    position: relative;
-
-    margin-bottom: 10px;
-
-    color: #168cff;
-
-    font-size: clamp(28px, 7vw, 38px);
-
-    text-align: center;
-
-    text-shadow:
-        0 0 18px rgba(22, 140, 255, 0.55);
-}
-
-.login-box .subtitle {
-    position: relative;
-
-    margin-bottom: 28px;
-
-    text-align: center;
-}
-
-.login-box label {
-    display: block;
-
-    margin-bottom: 8px;
-
-    color: #dce7f5;
-
-    font-size: 14px;
-    font-weight: 700;
-}
-
-.login-box input {
-    width: 100%;
-
-    padding: 14px 15px;
-    margin-bottom: 18px;
-
-    border: 1px solid #24344d;
-    border-radius: 10px;
-
-    background: #04070d;
-    color: #ffffff;
-
-    outline: none;
-
-    transition:
-        border-color 0.2s ease,
-        box-shadow 0.2s ease;
-}
-
-.login-box input::placeholder {
-    color: #58677b;
-}
-
-.login-box input:focus {
-    border-color: #168cff;
-
-    box-shadow:
-        0 0 0 3px rgba(22, 140, 255, 0.09),
-        0 0 18px rgba(22, 140, 255, 0.10);
-}
-
-.login-box form button {
-    width: 100%;
-
-    padding: 14px;
-
-    border-radius: 10px;
-
-    background:
-        linear-gradient(
-            135deg,
-            #168cff,
-            #0067d9
-        );
-
-    color: white;
-
-    font-size: 15px;
-    font-weight: 900;
-
-    box-shadow:
-        0 0 20px rgba(22, 140, 255, 0.22);
-
-    transition:
-        transform 0.2s ease,
-        filter 0.2s ease;
-}
-
-.login-box form button:hover {
-    transform: translateY(-2px);
-    filter: brightness(1.08);
-}
-
-.login-box > p:last-child {
-    text-align: center;
-    margin-top: 20px;
 }
 
 
-/* =========================================================
-   MENSAJES
-   ========================================================= */
 
-.alert {
-    margin-bottom: 18px;
-    padding: 12px 14px;
+@media(max-width:600px){
 
-    border: 1px solid rgba(255, 80, 80, 0.35);
-    border-radius: 10px;
+    .container{
 
-    background: rgba(255, 60, 60, 0.08);
+        padding:15px;
 
-    color: #ff9a9a;
-
-    font-size: 14px;
-}
-
-
-/* =========================================================
-   PANEL ADMIN
-   ========================================================= */
-
-.admin-grid,
-.stats-grid {
-    display: grid;
-
-    grid-template-columns:
-        repeat(4, minmax(0, 1fr));
-
-    gap: 18px;
-
-    margin: 30px 0;
-}
-
-.stat-card {
-    padding: 25px;
-
-    border: 1px solid rgba(37, 58, 89, 0.85);
-    border-radius: 16px;
-
-    background:
-        linear-gradient(
-            145deg,
-            rgba(10,17,29,0.97),
-            rgba(5,9,16,0.97)
-        );
-}
-
-.stat-card strong {
-    display: block;
-
-    margin-bottom: 5px;
-
-    color: #168cff;
-
-    font-size: 38px;
-}
-
-
-/* =========================================================
-   FORMULARIOS GENERALES
-   ========================================================= */
-
-form {
-    margin: 0;
-}
-
-
-/* =========================================================
-   TABLA / USUARIOS
-   ========================================================= */
-
-.user-row {
-    padding: 20px;
-
-    margin-bottom: 12px;
-
-    border: 1px solid #19273c;
-    border-radius: 12px;
-
-    background: #050a12;
-}
-
-
-/* =========================================================
-   FOOTER
-   ========================================================= */
-
-footer {
-    padding: 35px 20px;
-
-    border-top: 1px solid rgba(37, 58, 89, 0.5);
-
-    background: #020408;
-
-    color: #5d6b7e;
-
-    text-align: center;
-
-    font-size: 14px;
-}
-
-
-/* =========================================================
-   HR
-   ========================================================= */
-
-hr {
-    border: 0;
-    border-top: 1px solid #19273c;
-}
-
-
-/* =========================================================
-   ANIMACIÓN
-   ========================================================= */
-
-@keyframes fadeUp {
-
-    from {
-        opacity: 0;
-        transform: translateY(15px);
     }
 
-    to {
-        opacity: 1;
-        transform: translateY(0);
-    }
 
-}
+    .hero h2{
 
-.hero > div,
-.lesson-card,
-.card,
-.login-box {
-    animation: fadeUp 0.55s ease both;
-}
+        font-size:25px;
 
-
-/* =========================================================
-   RESPONSIVE
-   ========================================================= */
-
-@media (max-width: 1000px) {
-
-    .lesson-grid {
-        grid-template-columns:
-            repeat(2, minmax(0, 1fr));
-    }
-
-    .admin-grid,
-    .stats-grid {
-        grid-template-columns:
-            repeat(2, minmax(0, 1fr));
-    }
-
-}
-
-
-@media (max-width: 650px) {
-
-    header {
-        padding: 16px 5%;
-    }
-
-    .logo {
-        font-size: 17px;
-    }
-
-    .hero {
-        min-height: 70vh;
-        padding: 70px 20px;
-    }
-
-    .hero h1 {
-        font-size: 42px;
-    }
-
-    .hero p {
-        font-size: 16px;
-    }
-
-    .lessons,
-    .security {
-        padding: 70px 0;
-    }
-
-    .lesson-grid {
-        grid-template-columns: 1fr;
-    }
-
-    .admin-grid,
-    .stats-grid {
-        grid-template-columns: 1fr;
-    }
-
-    .login-box {
-        padding: 28px 22px;
     }
 
 }
