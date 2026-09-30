@@ -1,43 +1,115 @@
 <!DOCTYPE html>
-
-<html>
-
+<html lang="es">
 <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-<link rel="stylesheet" href="{{url_for('static',filename='style.css')}}">
+    <title>{{ lesson.title }} - Academy Blox Script</title>
 
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 </head>
-
 
 <body>
 
+    <header class="navbar">
+        <div class="logo">
+            🔥 Academy Blox Script
+        </div>
 
-<div class="container">
+        <nav>
+            <a href="{{ url_for('index') }}">Inicio</a>
 
-
-<h1>
-{{lesson.title}}
-</h1>
-
-
-<div class="card">
-
-<p>
-{{lesson.content}}
-</p>
-
-
-</div>
+            {% if session.get('username') %}
+                <a href="{{ url_for('logout') }}">Cerrar sesión</a>
+            {% else %}
+                <a href="{{ url_for('login') }}">Iniciar sesión</a>
+            {% endif %}
+        </nav>
+    </header>
 
 
-<a class="button" href="/">
-Volver
-</a>
+    <main class="lesson-container">
+
+        <div class="lesson-card">
+
+            <div class="lesson-header">
+
+                <span class="lesson-number">
+                    LECCIÓN {{ lesson.id }}
+                </span>
+
+                <h1>{{ lesson.title }}</h1>
+
+            </div>
 
 
-</div>
+            <div class="lesson-content">
 
+                {% if lesson.description %}
+                    <p class="lesson-description">
+                        {{ lesson.description }}
+                    </p>
+                {% endif %}
+
+
+                {% if lesson.content %}
+
+                    <div class="content">
+                        {{ lesson.content | safe }}
+                    </div>
+
+                {% else %}
+
+                    <p>
+                        Esta lección todavía no tiene contenido.
+                    </p>
+
+                {% endif %}
+
+            </div>
+
+
+            <div class="lesson-actions">
+
+                {% if lesson.id > 1 %}
+
+                    <a
+                        href="{{ url_for('lesson', id=lesson.id - 1) }}"
+                        class="btn secondary"
+                    >
+                        ← Lección anterior
+                    </a>
+
+                {% endif %}
+
+
+                <a
+                    href="{{ url_for('index') }}"
+                    class="btn"
+                >
+                    Volver al inicio
+                </a>
+
+
+                <a
+                    href="{{ url_for('lesson', id=lesson.id + 1) }}"
+                    class="btn"
+                >
+                    Siguiente lección →
+                </a>
+
+            </div>
+
+        </div>
+
+    </main>
+
+
+    <footer>
+        <p>
+            © 2026 Academy Blox Script
+        </p>
+    </footer>
 
 </body>
-
 </html>
