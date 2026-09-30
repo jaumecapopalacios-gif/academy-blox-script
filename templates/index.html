@@ -62,7 +62,7 @@ Entrar
 </a>
 
 
-{% if current_user.is_admin %}
+{% if session.get('is_admin') %}
 
 <br><br>
 
