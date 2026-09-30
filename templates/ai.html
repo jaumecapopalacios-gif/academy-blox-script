@@ -3,197 +3,9 @@
 
 <head>
 
-    <meta charset="UTF-8">
+<title>Academy AI</title>
 
-    <meta
-        name="viewport"
-        content="width=device-width, initial-scale=1.0"
-    >
-
-    <title>Academy AI | Academy Blox Script</title>
-
-    <link
-        rel="stylesheet"
-        href="{{ url_for('static', filename='style.css') }}"
-    >
-
-    <style>
-
-        body {
-            background: #05070d;
-            color: white;
-            font-family: Arial, sans-serif;
-            margin: 0;
-        }
-
-        header {
-            padding: 20px;
-            border-bottom: 1px solid #182438;
-            background: #03060b;
-        }
-
-        .logo {
-            color: #168cff;
-            font-weight: bold;
-            font-size: 20px;
-            text-align: center;
-        }
-
-        .ai-page {
-            max-width: 900px;
-            margin: 40px auto;
-            padding: 20px;
-        }
-
-        .ai-card {
-            border: 1px solid #168cff;
-            border-radius: 18px;
-            background: #03060b;
-            box-shadow:
-                0 0 30px rgba(22, 140, 255, 0.10);
-            overflow: hidden;
-        }
-
-        .ai-header {
-            padding: 25px;
-            border-bottom: 1px solid #182438;
-        }
-
-        .ai-header h1 {
-            margin: 0 0 8px;
-            color: #168cff;
-        }
-
-        .ai-header p {
-            color: #8d9aae;
-            margin: 0;
-        }
-
-        .limit {
-            margin-top: 15px;
-            display: inline-block;
-            padding: 8px 12px;
-            border-radius: 8px;
-            background: #07111e;
-            border: 1px solid #1b3554;
-            color: #7cff9b;
-            font-size: 13px;
-        }
-
-        .chat {
-            height: 500px;
-            overflow-y: auto;
-            padding: 20px;
-        }
-
-        .message {
-            margin-bottom: 18px;
-            display: flex;
-        }
-
-        .message.user {
-            justify-content: flex-end;
-        }
-
-        .bubble {
-            max-width: 80%;
-            padding: 13px 16px;
-            border-radius: 14px;
-            line-height: 1.5;
-            white-space: pre-wrap;
-            overflow-wrap: anywhere;
-        }
-
-        .message.ai .bubble {
-            background: #07111e;
-            border: 1px solid #183450;
-            color: #e8f1ff;
-        }
-
-        .message.user .bubble {
-            background: #168cff;
-            color: white;
-        }
-
-        .input-area {
-            padding: 18px;
-            border-top: 1px solid #182438;
-            display: flex;
-            gap: 10px;
-        }
-
-        .input-area textarea {
-            flex: 1;
-            resize: none;
-            min-height: 50px;
-            max-height: 140px;
-            padding: 14px;
-            border-radius: 10px;
-            border: 1px solid #24344d;
-            background: #05070d;
-            color: white;
-            outline: none;
-            font-family: Arial, sans-serif;
-        }
-
-        .input-area textarea:focus {
-            border-color: #168cff;
-            box-shadow:
-                0 0 15px rgba(22, 140, 255, 0.15);
-        }
-
-        .send {
-            border: none;
-            padding: 0 20px;
-            border-radius: 10px;
-            background: #168cff;
-            color: white;
-            font-weight: bold;
-            cursor: pointer;
-        }
-
-        .send:disabled {
-            opacity: 0.5;
-            cursor: not-allowed;
-        }
-
-        .back {
-            display: inline-block;
-            margin-top: 20px;
-            color: #168cff;
-            text-decoration: none;
-        }
-
-        .typing {
-            color: #7cff9b;
-            font-family: Consolas, monospace;
-        }
-
-        @media (max-width: 650px) {
-
-            .ai-page {
-                margin: 15px auto;
-                padding: 10px;
-            }
-
-            .chat {
-                height: 55vh;
-            }
-
-            .bubble {
-                max-width: 90%;
-            }
-
-            .input-area {
-                flex-direction: column;
-            }
-
-            .send {
-                min-height: 45px;
-            }
-        }
-
-    </style>
+<link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 
 </head>
 
@@ -203,295 +15,152 @@
 
 <header>
 
-    <div class="logo">
-        ACADEMY BLOX SCRIPT
-    </div>
+<h1>
+🤖 Academy AI
+</h1>
 
 </header>
 
 
-<main class="ai-page">
+
+<div class="container">
 
 
-    <div class="ai-card">
+<div class="card">
 
 
-        <div class="ai-header">
-
-            <h1>
-                Academy AI
-            </h1>
-
-            <p>
-                Tu asistente para aprender Roblox Studio y Luau.
-            </p>
-
-            <div
-                class="limit"
-                id="limit"
-            >
-                Preguntas restantes hoy:
-                {{ remaining }}/{{ daily_limit }}
-            </div>
-
-        </div>
+<h2>
+Tu profesor de Roblox Studio
+</h2>
 
 
-        <div
-            class="chat"
-            id="chat"
-        >
-
-            <div class="message ai">
-
-                <div class="bubble">
-
-                    Hola. Soy Academy AI.
-
-                    Pregúntame sobre Roblox Studio,
-                    Luau, scripts, errores o programación.
-
-                    Tienes {{ remaining }} preguntas disponibles hoy.
-
-                </div>
-
-            </div>
-
-        </div>
+<p>
+Preguntas restantes hoy:
+<b>{{ remaining }}</b>
+</p>
 
 
-        <div class="input-area">
-
-            <textarea
-                id="question"
-                placeholder="Escribe tu pregunta..."
-                maxlength="4000"
-            ></textarea>
-
-            <button
-                class="send"
-                id="send"
-                onclick="askAI()"
-            >
-                ENVIAR
-            </button>
-
-        </div>
+<textarea 
+id="question"
+placeholder="Ejemplo: ¿Cómo hago un sistema de monedas en Roblox?"
+></textarea>
 
 
-    </div>
+<br><br>
 
 
-    <a
-        class="back"
-        href="{{ url_for('index') }}"
-    >
-        ← Volver a la academia
-    </a>
+<button 
+class="button"
+onclick="sendQuestion()"
+>
+Preguntar
+</button>
 
 
-</main>
+</div>
+
+
+
+<div class="card">
+
+
+<h2>
+Respuesta
+</h2>
+
+
+<pre id="answer">
+Aquí aparecerá la respuesta de Academy AI...
+</pre>
+
+
+</div>
+
+
+
+<a class="button" href="/">
+Volver
+</a>
+
+
+</div>
+
+
+
 
 
 <script>
 
-const questionInput =
-    document.getElementById("question");
 
-const chat =
-    document.getElementById("chat");
-
-const sendButton =
-    document.getElementById("send");
-
-const limitElement =
-    document.getElementById("limit");
+async function sendQuestion(){
 
 
-questionInput.addEventListener(
-    "keydown",
-    function(event) {
+let question =
+document.getElementById("question").value;
 
-        if (
-            event.key === "Enter" &&
-            !event.shiftKey
-        ) {
 
-            event.preventDefault();
 
-            askAI();
-        }
+let answer =
+document.getElementById("answer");
 
-    }
+
+
+answer.innerHTML =
+"Pensando...";
+
+
+
+let response =
+await fetch(
+"/ai/chat",
+{
+
+method:"POST",
+
+headers:
+{
+"Content-Type":"application/json"
+},
+
+body:
+JSON.stringify(
+{
+question:question
+}
+)
+
+}
+
 );
 
 
-function addMessage(
-    text,
-    type
-) {
 
-    const message =
-        document.createElement("div");
+let data =
+await response.json();
 
-    message.className =
-        "message " + type;
 
-    const bubble =
-        document.createElement("div");
 
-    bubble.className =
-        "bubble";
+if(data.answer){
 
-    bubble.textContent =
-        text;
+answer.innerHTML =
+data.answer;
 
-    message.appendChild(
-        bubble
-    );
+}
 
-    chat.appendChild(
-        message
-    );
+else{
 
-    chat.scrollTop =
-        chat.scrollHeight;
+answer.innerHTML =
+data.error;
+
 }
 
 
-async function askAI() {
-
-    const question =
-        questionInput.value.trim();
-
-    if (!question) {
-        return;
-    }
-
-    sendButton.disabled = true;
-
-    questionInput.disabled = true;
-
-    addMessage(
-        question,
-        "user"
-    );
-
-    questionInput.value = "";
-
-
-    const typing =
-        document.createElement("div");
-
-    typing.className =
-        "message ai";
-
-    typing.innerHTML = `
-        <div class="bubble typing">
-            Academy AI está pensando...
-        </div>
-    `;
-
-    chat.appendChild(
-        typing
-    );
-
-    chat.scrollTop =
-        chat.scrollHeight;
-
-
-    try {
-
-        const response =
-            await fetch(
-                "{{ url_for('academy_ai') }}",
-                {
-                    method: "POST",
-
-                    headers: {
-                        "Content-Type":
-                            "application/json"
-                    },
-
-                    body: JSON.stringify({
-                        question: question
-                    })
-                }
-            );
-
-
-        const data =
-            await response.json();
-
-
-        typing.remove();
-
-
-        if (data.answer) {
-
-            addMessage(
-                data.answer,
-                "ai"
-            );
-        }
-
-
-        if (
-            typeof data.remaining !==
-            "undefined"
-        ) {
-
-            limitElement.textContent =
-                "Preguntas restantes hoy: " +
-                data.remaining +
-                "/{{ daily_limit }}";
-        }
-
-
-        if (
-            data.remaining <= 0
-        ) {
-
-            sendButton.disabled =
-                true;
-
-            questionInput.disabled =
-                true;
-
-            questionInput.placeholder =
-                "Has alcanzado el límite diario.";
-        }
-
-    }
-
-    catch (error) {
-
-        typing.remove();
-
-        addMessage(
-            "No se pudo conectar con Academy AI.",
-            "ai"
-        );
-
-    }
-
-
-    if (
-        !questionInput.disabled
-    ) {
-
-        sendButton.disabled =
-            false;
-
-        questionInput.disabled =
-            false;
-
-        questionInput.focus();
-    }
-
 }
+
+
 
 </script>
+
 
 
 </body>
