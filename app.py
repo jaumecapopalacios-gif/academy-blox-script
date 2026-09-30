@@ -23,7 +23,7 @@ app.secret_key = "academy_secret_key_2026"
 
 
 # -----------------------
-# Base de datos
+# BASE DE DATOS
 # -----------------------
 
 def get_db():
@@ -45,11 +45,8 @@ def init_db():
     CREATE TABLE IF NOT EXISTS users(
 
         id INTEGER PRIMARY KEY AUTOINCREMENT,
-
         username TEXT UNIQUE,
-
         email TEXT,
-
         password TEXT
 
     )
@@ -60,11 +57,8 @@ def init_db():
     CREATE TABLE IF NOT EXISTS lessons(
 
         id INTEGER PRIMARY KEY AUTOINCREMENT,
-
         title TEXT,
-
         description TEXT,
-
         content TEXT
 
     )
@@ -72,13 +66,12 @@ def init_db():
 
 
     db.commit()
-
     db.close()
 
 
 
 # -----------------------
-# Inicio
+# INICIO
 # -----------------------
 
 @app.route("/")
@@ -95,24 +88,22 @@ def index():
 
     return render_template(
         "index.html",
-        lessons=lessons
+        lessons=lessons,
+        current_user=session
     )
 
 
 
 # -----------------------
-# Registro
+# REGISTRO
 # -----------------------
 
-@app.route("/register", methods=["GET","POST"])
+@app.route("/register", methods=["GET", "POST"])
 def register():
-
 
     if request.method == "POST":
 
-
         username = request.form["username"]
-
         email = request.form["email"]
 
         password = generate_password_hash(
@@ -126,17 +117,17 @@ def register():
         try:
 
             db.execute(
-            """
-            INSERT INTO users
-            (username,email,password)
+                """
+                INSERT INTO users
+                (username,email,password)
 
-            VALUES (?,?,?)
-            """,
-            (
-                username,
-                email,
-                password
-            )
+                VALUES (?,?,?)
+                """,
+                (
+                    username,
+                    email,
+                    password
+                )
             )
 
 
@@ -156,7 +147,7 @@ def register():
         except:
 
             flash(
-                "El usuario ya existe"
+                "Ese usuario ya existe"
             )
 
 
@@ -173,18 +164,15 @@ def register():
 
 
 # -----------------------
-# Login
+# LOGIN
 # -----------------------
 
-@app.route("/login", methods=["GET","POST"])
+@app.route("/login", methods=["GET", "POST"])
 def login():
-
 
     if request.method == "POST":
 
-
         username = request.form["username"]
-
         password = request.form["password"]
 
 
@@ -192,11 +180,11 @@ def login():
 
 
         user = db.execute(
-        """
-        SELECT * FROM users
-        WHERE username=?
-        """,
-        (username,)
+            """
+            SELECT * FROM users
+            WHERE username=?
+            """,
+            (username,)
         ).fetchone()
 
 
@@ -210,9 +198,13 @@ def login():
         ):
 
 
-            session["username"] = username
+            session["username"] = user["username"]
+
+            session["email"] = user["email"]
 
             session["user_id"] = user["id"]
+
+            session["is_admin"] = False
 
 
             return redirect(
@@ -222,7 +214,7 @@ def login():
 
 
         flash(
-            "Datos incorrectos"
+            "Usuario o contraseña incorrectos"
         )
 
 
@@ -234,7 +226,7 @@ def login():
 
 
 # -----------------------
-# Logout
+# CERRAR SESIÓN
 # -----------------------
 
 @app.route("/logout")
@@ -249,22 +241,21 @@ def logout():
 
 
 # -----------------------
-# Lecciones
+# LECCIONES
 # -----------------------
 
 @app.route("/lesson/<int:id>")
 def lesson(id):
 
-
     db = get_db()
 
 
     lesson = db.execute(
-    """
-    SELECT * FROM lessons
-    WHERE id=?
-    """,
-    (id,)
+        """
+        SELECT * FROM lessons
+        WHERE id=?
+        """,
+        (id,)
     ).fetchone()
 
 
@@ -286,12 +277,11 @@ def lesson(id):
 
 
 # -----------------------
-# Admin
+# ADMIN
 # -----------------------
 
-@app.route("/admin", methods=["GET","POST"])
+@app.route("/admin", methods=["GET", "POST"])
 def admin():
-
 
     if "username" not in session:
 
@@ -306,19 +296,18 @@ def admin():
 
     if request.method == "POST":
 
-
         db.execute(
-        """
-        INSERT INTO lessons
-        (title,description,content)
+            """
+            INSERT INTO lessons
+            (title,description,content)
 
-        VALUES (?,?,?)
-        """,
-        (
-            request.form["title"],
-            request.form["description"],
-            request.form["content"]
-        )
+            VALUES (?,?,?)
+            """,
+            (
+                request.form["title"],
+                request.form["description"],
+                request.form["content"]
+            )
         )
 
 
@@ -329,6 +318,7 @@ def admin():
     lessons = db.execute(
         "SELECT * FROM lessons"
     ).fetchall()
+
 
 
     db.close()
@@ -346,7 +336,7 @@ def admin():
 # IA
 # -----------------------
 
-@app.route("/ai", methods=["GET","POST"])
+@app.route("/ai", methods=["GET", "POST"])
 def ai():
 
     response = None
@@ -358,7 +348,7 @@ def ai():
 
 
         response = (
-            "Estoy procesando: " 
+            "Respuesta de Academy AI: "
             + message
         )
 
