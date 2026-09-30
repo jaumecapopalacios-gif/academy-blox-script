@@ -2,120 +2,71 @@
 <html lang="es">
 
 <head>
-
-<meta charset="UTF-8">
-
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-
 <title>Academy Blox Script</title>
-
-<link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
-
+<link rel="stylesheet" href="{{ url_for('static',filename='style.css') }}">
 </head>
-
 
 <body>
 
-
 <header>
-
-<div class="logo">
-🔥 ACADEMY BLOX SCRIPT 🔥
-</div>
-
+<h1>🔥 ACADEMY BLOX SCRIPT</h1>
 </header>
-
 
 
 <section class="hero">
 
-<p class="blue">
-ACADEMY ONLINE
-</p>
-
-
-<h1>
-ACADEMY
-<span class="blue">
-BLOX SCRIPT
-</span>
-</h1>
-
+<h2>Aprende Roblox Studio desde cero</h2>
 
 <p>
-Aprende a programar en Roblox Studio
-desde cero y crea tus propias experiencias.
+Usuario conectado:
+<b>{{user["email"]}}</b>
 </p>
 
 
-<br>
-
-
-<p>
-Sesión iniciada como:
-<strong>
-{{ user["email"] }}
-</strong>
-</p>
-
-
-
-{% if user["admin"] == 1 %}
-
-<br>
+{% if user["admin"] %}
 
 <a class="button" href="/admin">
-PANEL ADMINISTRADOR
+Panel Administrador
 </a>
 
 {% endif %}
 
 
-<br><br>
-
-
 <a class="button" href="/ai">
-ACADEMY AI
+Academy AI
 </a>
-
 
 </section>
 
 
 
-
-<section class="lessons">
-
-
-<h2>
-Tus lecciones
-</h2>
+<div class="container">
 
 
-<div class="lesson-grid">
+<h2>Lecciones</h2>
+
+
+<div class="grid">
 
 
 {% for lesson in lessons %}
 
-
 <div class="card">
 
-
 <h3>
-LECCIÓN {{ loop.index }}
+{{lesson.title}}
 </h3>
 
 
-<h2>
-{{ lesson["title"] }}
-</h2>
-
-
 <p>
-{{ lesson["description"] }}
+{{lesson.description}}
 </p>
 
 
+<a class="button"
+href="/lesson/{{loop.index}}">
+Entrar
+</a>
 
 </div>
 
@@ -128,28 +79,17 @@ LECCIÓN {{ loop.index }}
 
 <br>
 
-
 <form action="/logout">
 
 <button class="button">
-CERRAR SESIÓN
+Cerrar sesión
 </button>
 
 </form>
 
 
-
-</section>
-
-
-
-<footer>
-
-Academy Blox Script © 2026
-
-</footer>
+</div>
 
 
 </body>
-
 </html>
