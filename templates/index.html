@@ -3,13 +3,13 @@
 
 <head>
 
-    <meta charset="UTF-8">
+<meta charset="UTF-8">
 
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-    <title>Academy Blox Script</title>
+<title>Academy Blox Script</title>
 
-    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 
 </head>
 
@@ -19,9 +19,9 @@
 
 <header>
 
-    <h1>
-        ACADEMY BLOX SCRIPT
-    </h1>
+<div class="logo">
+🔥 ACADEMY BLOX SCRIPT 🔥
+</div>
 
 </header>
 
@@ -29,17 +29,54 @@
 
 <section class="hero">
 
-    <h2>
-        Aprende Roblox Studio desde cero
-    </h2>
+<p class="blue">
+ACADEMY ONLINE
+</p>
 
 
-    <p>
-        Usuario conectado:
-        <strong>
-            {{ user["email"] }}
-        </strong>
-    </p>
+<h1>
+ACADEMY
+<span class="blue">
+BLOX SCRIPT
+</span>
+</h1>
+
+
+<p>
+Aprende a programar en Roblox Studio
+desde cero y crea tus propias experiencias.
+</p>
+
+
+<br>
+
+
+<p>
+Sesión iniciada como:
+<strong>
+{{ user["email"] }}
+</strong>
+</p>
+
+
+
+{% if user["admin"] == 1 %}
+
+<br>
+
+<a class="button" href="/admin">
+PANEL ADMINISTRADOR
+</a>
+
+{% endif %}
+
+
+<br><br>
+
+
+<a class="button" href="/ai">
+ACADEMY AI
+</a>
 
 
 </section>
@@ -50,42 +87,55 @@
 <section class="lessons">
 
 
-    <h2>
-        Tus lecciones
-    </h2>
+<h2>
+Tus lecciones
+</h2>
+
+
+<div class="lesson-grid">
+
+
+{% for lesson in lessons %}
+
+
+<div class="card">
+
+
+<h3>
+LECCIÓN {{ loop.index }}
+</h3>
+
+
+<h2>
+{{ lesson["title"] }}
+</h2>
+
+
+<p>
+{{ lesson["description"] }}
+</p>
 
 
 
-    {% for lesson in lessons %}
+</div>
 
 
-    <div class="card">
+{% endfor %}
 
 
-        <h3>
-            Lección {{ loop.index }}
-        </h3>
+</div>
 
 
-        <h2>
-            {{ lesson["title"] }}
-        </h2>
+<br>
 
 
-        <p>
-            {{ lesson["description"] }}
-        </p>
+<form action="/logout">
 
+<button class="button">
+CERRAR SESIÓN
+</button>
 
-        <a class="button" href="/lesson/{{ loop.index }}">
-            ENTRAR
-        </a>
-
-
-    </div>
-
-
-    {% endfor %}
+</form>
 
 
 
@@ -93,12 +143,9 @@
 
 
 
-
 <footer>
 
-    <p>
-        Academy Blox Script © 2026
-    </p>
+Academy Blox Script © 2026
 
 </footer>
 
