@@ -3,7 +3,7 @@
 
 <head>
 
-<title>Admin</title>
+<title>Panel Administrador</title>
 
 <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 
@@ -13,38 +13,162 @@
 <body>
 
 
+<header>
+
 <h1>
-Panel Administrador
+⚡ PANEL ADMINISTRADOR
 </h1>
 
-
-<h2>
-Usuarios
-</h2>
+</header>
 
 
-{% for u in users %}
+
+<div class="container">
+
+
 
 <div class="card">
 
-{{ u["email"] }}
+<h2>
+Consola de administración
+</h2>
 
-{% if u["admin"] == 1 %}
-ADMIN
-{% endif %}
+
+<p>
+Comandos disponibles:
+</p>
+
+
+<pre>
+users
+block correo
+unblock correo
+makeadmin correo
+delete correo
+</pre>
+
+
+
+<form method="POST" action="/admin/console">
+
+
+<input 
+name="command"
+placeholder="Escribe un comando"
+required
+>
+
+
+<button class="button">
+Ejecutar
+</button>
+
+
+</form>
+
 
 </div>
+
+
+
+
+
+<div class="card">
+
+<h2>
+Usuarios registrados
+</h2>
+
+
+
+{% for user in users %}
+
+
+<div class="card">
+
+
+<p>
+<b>
+{{user.email}}
+</b>
+</p>
+
+
+<p>
+
+{% if user.admin %}
+
+Administrador
+
+{% else %}
+
+Usuario
+
+{% endif %}
+
+
+
+{% if user.blocked %}
+
+| Bloqueado
+
+{% endif %}
+
+</p>
+
+
+</div>
+
 
 
 {% endfor %}
 
 
+</div>
 
-<br>
 
-<a href="/">
+
+
+
+<div class="card">
+
+
+<h2>
+Activar administrador
+</h2>
+
+
+<form method="POST" action="/activate-admin">
+
+
+<input
+type="password"
+name="code"
+placeholder="Código administrador"
+required
+>
+
+
+<button class="button">
+Activar
+</button>
+
+
+</form>
+
+
+</div>
+
+
+
+
+<a class="button" href="/">
 Volver
 </a>
+
+
+</div>
+
 
 
 </body>
