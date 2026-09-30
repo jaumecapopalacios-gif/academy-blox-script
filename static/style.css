@@ -1,12 +1,13 @@
 *{
     box-sizing:border-box;
-    font-family:Arial, sans-serif;
 }
 
 
 body{
 
     margin:0;
+
+    font-family:Arial, sans-serif;
 
     background:#05070d;
 
@@ -34,6 +35,8 @@ header h1{
 
     color:#00aaff;
 
+    text-shadow:0 0 15px #00aaff;
+
 }
 
 
@@ -42,7 +45,7 @@ header h1{
 
     width:90%;
 
-    max-width:1100px;
+    max-width:1000px;
 
     margin:auto;
 
@@ -52,86 +55,27 @@ header h1{
 
 
 
-.hero{
-
-    text-align:center;
-
-    padding:50px 20px;
-
-}
-
-
-
-.hero h2{
-
-    font-size:35px;
-
-    color:#00aaff;
-
-}
-
-
-
 .card{
 
     background:#0b1220;
 
-    border:1px solid #16314d;
+    border:1px solid #1b3858;
 
     border-radius:15px;
 
     padding:25px;
 
-    margin:20px 0;
+    margin-bottom:25px;
 
-    box-shadow:0 0 15px #001f33;
-
-}
-
-
-
-.grid{
-
-    display:grid;
-
-    grid-template-columns:repeat(
-        auto-fit,
-        minmax(250px,1fr)
-    );
-
-    gap:20px;
+    box-shadow:0 0 20px rgba(0,150,255,0.15);
 
 }
 
 
 
-.button{
+h2{
 
-    display:inline-block;
-
-    background:#009dff;
-
-    color:white;
-
-    padding:12px 25px;
-
-    border-radius:10px;
-
-    text-decoration:none;
-
-    border:none;
-
-    cursor:pointer;
-
-    font-weight:bold;
-
-}
-
-
-
-.button:hover{
-
-    background:#00c3ff;
+    color:#00aaff;
 
 }
 
@@ -142,7 +86,7 @@ textarea{
 
     width:100%;
 
-    padding:15px;
+    padding:14px;
 
     margin:10px 0;
 
@@ -150,7 +94,7 @@ textarea{
 
     color:white;
 
-    border:1px solid #16314d;
+    border:1px solid #245078;
 
     border-radius:10px;
 
@@ -160,27 +104,39 @@ textarea{
 
 textarea{
 
-    min-height:120px;
+    height:120px;
 
 }
 
 
 
-.box{
+.button{
 
-    width:90%;
+    display:inline-block;
 
-    max-width:450px;
+    background:#00aaff;
 
-    margin:100px auto;
+    color:white;
 
-    background:#0b1220;
+    padding:12px 25px;
 
-    padding:30px;
+    border:none;
 
-    border-radius:15px;
+    border-radius:10px;
 
-    text-align:center;
+    text-decoration:none;
+
+    cursor:pointer;
+
+    margin-top:10px;
+
+}
+
+
+
+.button:hover{
+
+    background:#0088cc;
 
 }
 
@@ -188,61 +144,24 @@ textarea{
 
 pre{
 
-    white-space:pre-wrap;
+    background:#020409;
 
-    color:#ddd;
-
-    font-size:16px;
-
-}
-
-
-
-a{
-
-    color:#00aaff;
-
-}
-
-
-
-.lesson-card{
-
-    background:#0b1220;
-
-    padding:20px;
-
-    border-radius:15px;
-
-}
-
-
-
-.alert{
-
-    background:#ff3333;
-
-    padding:10px;
+    padding:15px;
 
     border-radius:10px;
 
+    color:#00ff99;
+
 }
 
 
 
-@media(max-width:600px){
+hr{
 
-    .container{
+    border:0;
 
-        padding:15px;
+    border-top:1px solid #24344d;
 
-    }
-
-
-    .hero h2{
-
-        font-size:25px;
-
-    }
+    margin:20px 0;
 
 }
