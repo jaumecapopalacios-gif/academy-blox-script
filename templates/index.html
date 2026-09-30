@@ -1,209 +1,77 @@
 <!DOCTYPE html>
-<html lang="es">
-
+<html>
 <head>
+<title>Academy Blox Script</title>
 
-<meta charset="UTF-8">
+<style>
+body{
+background:#050505;
+color:white;
+font-family:Arial;
+}
 
-<title>
-Academy Blox Script
-</title>
+.card{
+background:#111;
+padding:20px;
+margin:15px;
+border-radius:10px;
+border:1px solid cyan;
+}
 
-<link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+a{
+color:cyan;
+}
+</style>
 
 </head>
 
-
 <body>
 
+<h1>🔥 Academy Blox Script</h1>
 
-<header>
+<p>Usuario conectado:</p>
 
-<h1>
-ACADEMY BLOX SCRIPT
-</h1>
+<h3>{{current_user.email}}</h3>
 
-</header>
+<a href="/logout">Cerrar sesión</a>
 
-
-
-<div class="container">
-
-
-
-<div class="card">
-
-<h2>
-Bienvenido
-</h2>
-
-
-<p>
-Usuario conectado:
-</p>
-
-
-<strong>
-{{ current_user.email }}
-</strong>
-
-
-<br><br>
-
-
-
-<a href="/ai" class="button">
-🤖 Academy AI
-</a>
-
-
-
-</div>
-
-
-
-
-
-{% if not current_user.is_admin %}
-
-
-<div class="card">
-
-
-<h2>
-Activar administrador
-</h2>
-
-
-<form method="POST" action="/activate-admin">
-
-
-<input
-type="password"
-name="admin_code"
-placeholder="Código administrador"
-required
->
-
-
-<button class="button">
-Activar
-</button>
-
-
-</form>
-
-
-</div>
-
-
-{% endif %}
-
-
-
-
-
-
-{% if current_user.is_admin %}
-
-
-<div class="card">
-
-
-<h2>
-Panel administrador
-</h2>
-
-
-<p>
-Tienes permisos de administrador.
-</p>
-
-
-<a href="/admin" class="button">
-Entrar consola admin
-</a>
-
-
-</div>
-
-
-{% endif %}
-
-
-
-
-
-
-<div class="card">
-
-
-<h2>
-Lecciones
-</h2>
-
+<h2>Lecciones</h2>
 
 
 {% for lesson in lessons %}
 
+<div class="card">
 
-<div>
+<h2>{{lesson.title}}</h2>
 
+<p>{{lesson.description}}</p>
 
-<h3>
-{{ lesson.title }}
-</h3>
-
-
-<p>
-{{ lesson.description }}
-</p>
-
-
-
-<a 
-class="button"
-href="/lesson/{{ loop.index }}"
->
+<a href="/lesson/{{lesson.id}}">
 Entrar
 </a>
 
-
 </div>
-
-
-<hr>
-
 
 {% endfor %}
 
 
+<br>
 
-</div>
-
-
-
-
-
-<form method="POST" action="/logout">
+<a href="/ai">
+🤖 Academy AI
+</a>
 
 
-<button class="button">
+{% if current_user.is_admin %}
 
-Cerrar sesión
+<br><br>
 
-</button>
+<a href="/admin">
+⚙ Consola Administrador
+</a>
 
-
-</form>
-
-
-
-
-</div>
-
+{% endif %}
 
 
 </body>
-
 </html>
