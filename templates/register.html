@@ -1,98 +1,48 @@
 <!DOCTYPE html>
-<html lang="es">
+<html>
 
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-    <title>Crear cuenta | Academy Blox Script</title>
+<link rel="stylesheet" href="{{url_for('static',filename='style.css')}}">
 
-    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 </head>
+
 
 <body>
 
-<div class="login-page">
 
-    <div class="login-box">
+<div class="box">
 
-        <h1>CREAR CUENTA</h1>
 
-        <p class="subtitle">
-            Crea tu cuenta para entrar a Academy Blox Script.
-        </p>
+<h1>
+Crear cuenta
+</h1>
 
-        {% with messages = get_flashed_messages() %}
-            {% if messages %}
-                {% for message in messages %}
-                    <div class="alert">
-                        {{ message }}
-                    </div>
-                {% endfor %}
-            {% endif %}
-        {% endwith %}
 
-        <form method="POST">
+<form method="POST">
 
-            <label for="email">
-                Correo electrónico
-            </label>
 
-            <input
-                type="email"
-                id="email"
-                name="email"
-                placeholder="tu@correo.com"
-                required
-                autocomplete="email"
-            >
+<input name="email"
+placeholder="Correo"
+required>
 
-            <label for="password">
-                Contraseña
-            </label>
 
-            <input
-                type="password"
-                id="password"
-                name="password"
-                placeholder="Mínimo 8 caracteres"
-                required
-                minlength="8"
-                autocomplete="new-password"
-            >
+<input name="password"
+type="password"
+placeholder="Contraseña"
+required>
 
-            <label for="admin_code">
-                Código de administrador
-                <small>(opcional)</small>
-            </label>
 
-            <input
-                type="password"
-                id="admin_code"
-                name="admin_code"
-                placeholder="Déjalo vacío si eres alumno"
-                autocomplete="off"
-            >
+<button class="button">
+Registrarse
+</button>
 
-            <button type="submit">
-                Crear cuenta
-            </button>
 
-        </form>
+</form>
 
-        <br>
-
-        <p>
-            ¿Ya tienes una cuenta?
-            <a href="{{ url_for('login') }}">
-                Iniciar sesión
-            </a>
-        </p>
-
-    </div>
 
 </div>
 
-</body>
 
+</body>
 </html>
