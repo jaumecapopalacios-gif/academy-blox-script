@@ -1,77 +1,201 @@
 <!DOCTYPE html>
-<html>
+<html lang="es">
+
 <head>
-<title>Academy Blox Script</title>
 
-<style>
-body{
-background:#050505;
-color:white;
-font-family:Arial;
-}
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-.card{
-background:#111;
-padding:20px;
-margin:15px;
-border-radius:10px;
-border:1px solid cyan;
-}
+    <title>Academy Blox Script</title>
 
-a{
-color:cyan;
-}
-</style>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 
 </head>
 
+
 <body>
 
-<h1>🔥 Academy Blox Script</h1>
 
-<p>Usuario conectado:</p>
+<header class="navbar">
 
-<h3>{{session.get('username')}}</h3>
-
-<a href="/logout">Cerrar sesión</a>
-
-<h2>Lecciones</h2>
+    <div class="logo">
+        🔥 Academy Blox Script
+    </div>
 
 
-{% for lesson in lessons %}
+    <nav>
 
-<div class="card">
+        {% if session.get("username") %}
 
-<h2>{{lesson.title}}</h2>
+            <span>
+                Usuario: {{ session.get("username") }}
+            </span>
 
-<p>{{lesson.description}}</p>
+            <a href="{{ url_for('logout') }}">
+                Cerrar sesión
+            </a>
 
-<a href="/lesson/{{lesson.id}}">
-Entrar
-</a>
+        {% else %}
 
-</div>
+            <a href="{{ url_for('login') }}">
+                Iniciar sesión
+            </a>
 
-{% endfor %}
+            <a href="{{ url_for('register') }}">
+                Crear cuenta
+            </a>
 
-
-<br>
-
-<a href="/ai">
-🤖 Academy AI
-</a>
+        {% endif %}
 
 
-{% if session.get('is_admin') %}
+    </nav>
 
-<br><br>
 
-<a href="/admin">
-⚙ Consola Administrador
-</a>
+</header>
 
-{% endif %}
+
+
+
+<main class="container">
+
+
+    {% if session.get("username") %}
+
+    <div class="lesson-card">
+
+        <h2>
+            👤 Bienvenido {{ session.get("username") }}
+        </h2>
+
+        <p>
+            Cuenta conectada correctamente.
+        </p>
+
+
+    </div>
+
+
+    {% endif %}
+
+
+
+
+    <div class="lesson-card">
+
+
+        <h1>
+            Lecciones
+        </h1>
+
+
+        {% if lessons %}
+
+
+            {% for lesson in lessons %}
+
+
+            <div class="lesson-admin">
+
+
+                <h2>
+                    {{ lesson.title }}
+                </h2>
+
+
+                <p>
+                    {{ lesson.description }}
+                </p>
+
+
+                <a class="btn"
+                href="{{ url_for('lesson', id=lesson.id) }}">
+                    Ver lección
+                </a>
+
+
+            </div>
+
+
+            {% endfor %}
+
+
+        {% else %}
+
+
+            <p>
+                Todavía no hay lecciones creadas.
+            </p>
+
+
+        {% endif %}
+
+
+
+    </div>
+
+
+
+
+    <div class="lesson-card">
+
+
+        <h1>
+            🤖 Academy AI
+        </h1>
+
+
+        <p>
+            Aprende sobre Roblox Studio, scripts y programación.
+        </p>
+
+
+        <a class="btn"
+        href="{{ url_for('ai') }}">
+            Abrir asistente IA
+        </a>
+
+
+    </div>
+
+
+
+    {% if session.get("is_admin") %}
+
+
+    <div class="admin-card">
+
+
+        <h2>
+            Panel administrador
+        </h2>
+
+
+        <a class="btn"
+        href="{{ url_for('admin') }}">
+            Entrar al admin
+        </a>
+
+
+    </div>
+
+
+    {% endif %}
+
+
+
+</main>
+
+
+
+
+<footer>
+
+    © 2026 Academy Blox Script
+
+</footer>
+
 
 
 </body>
+
 </html>
