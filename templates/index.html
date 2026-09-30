@@ -31,7 +31,7 @@ color:cyan;
 
 <p>Usuario conectado:</p>
 
-<h3>{{current_user.email}}</h3>
+<h3>{{session.get('username')}}</h3>
 
 <a href="/logout">Cerrar sesión</a>
 
