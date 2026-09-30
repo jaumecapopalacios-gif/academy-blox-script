@@ -3,7 +3,11 @@
 
 <head>
 
-<title>Academy AI</title>
+<meta charset="UTF-8">
+
+<title>
+Academy AI
+</title>
 
 <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 
@@ -30,61 +34,43 @@
 
 
 <h2>
-Tu profesor de Roblox Studio
+Asistente de Roblox Studio
 </h2>
 
 
 <p>
-Preguntas restantes hoy:
-<b>{{ remaining }}</b>
+Pregunta sobre Luau, Roblox Studio o creación de juegos.
 </p>
 
 
-<textarea 
+
+<textarea
 id="question"
-placeholder="Ejemplo: ¿Cómo hago un sistema de monedas en Roblox?"
+placeholder="Escribe tu pregunta..."
 ></textarea>
 
 
-<br><br>
 
-
-<button 
+<button
 class="button"
-onclick="sendQuestion()"
+onclick="sendAI()"
 >
 Preguntar
 </button>
 
 
+
+<div id="answer" class="card">
+
+Respuesta aparecerá aquí.
+
 </div>
-
-
-
-<div class="card">
-
-
-<h2>
-Respuesta
-</h2>
-
-
-<pre id="answer">
-Aquí aparecerá la respuesta de Academy AI...
-</pre>
 
 
 </div>
 
 
-
-<a class="button" href="/">
-Volver
-</a>
-
-
 </div>
-
 
 
 
@@ -92,7 +78,7 @@ Volver
 <script>
 
 
-async function sendQuestion(){
+async function sendAI(){
 
 
 let question =
@@ -140,23 +126,11 @@ await response.json();
 
 
 
-if(data.answer){
-
 answer.innerHTML =
 data.answer;
 
-}
-
-else{
-
-answer.innerHTML =
-data.error;
 
 }
-
-
-}
-
 
 
 </script>
