@@ -1,39 +1,26 @@
 <!DOCTYPE html>
 <html>
-
 <head>
 <title>Login</title>
-<link rel="stylesheet" href="{{url_for('static',filename='style.css')}}">
 </head>
-
 
 <body>
 
-
-<div class="box">
-
-<h1>
-Academy Blox Script
-</h1>
-
+<h1>Academy Blox Script</h1>
 
 <form method="POST">
 
-<input name="email"
-placeholder="Correo"
-required>
+<input name="email" placeholder="Correo">
 
+<br>
 
-<input name="password"
-type="password"
-placeholder="Contraseña"
-required>
+<input name="password" type="password" placeholder="Contraseña">
 
+<br>
 
-<button class="button">
+<button>
 Entrar
 </button>
-
 
 </form>
 
@@ -41,9 +28,6 @@ Entrar
 <a href="/register">
 Crear cuenta
 </a>
-
-
-</div>
 
 
 </body>
