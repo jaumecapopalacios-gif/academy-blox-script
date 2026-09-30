@@ -3,13 +3,12 @@
 
 <head>
 
-<meta charset="UTF-8">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-<title>
-Panel Admin - Academy Blox Script
-</title>
+    <title>Admin - Academy Blox Script</title>
 
-<link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 
 </head>
 
@@ -17,105 +16,150 @@ Panel Admin - Academy Blox Script
 <body>
 
 
-<header>
+<header class="navbar">
 
-<h1>
-⚡ CONSOLA ADMINISTRADOR
-</h1>
+    <div class="logo">
+        🔥 Academy Blox Script Admin
+    </div>
+
+
+    <nav>
+
+        <a href="{{ url_for('index') }}">
+            Inicio
+        </a>
+
+
+        <a href="{{ url_for('logout') }}">
+            Cerrar sesión
+        </a>
+
+    </nav>
 
 </header>
 
 
 
-<div class="container">
+<main class="admin-container">
 
 
-<div class="card">
+    <h1>
+        Panel de administrador
+    </h1>
 
-<h2>
-Comandos
-</h2>
 
+    <section class="admin-card">
+
+
+        <h2>
+            Crear nueva lección
+        </h2>
+
+
+        <form method="POST">
+
+
+            <input
+            type="text"
+            name="title"
+            placeholder="Título de la lección"
+            required>
+
+
+            <textarea
+            name="description"
+            placeholder="Descripción">
+            </textarea>
+
+
+            <textarea
+            name="content"
+            placeholder="Contenido de la lección"
+            rows="10">
+            </textarea>
+
+
+
+            <button type="submit">
+                Crear lección
+            </button>
+
+
+        </form>
+
+
+    </section>
+
+
+
+
+    <section class="admin-card">
+
+
+        <h2>
+            Lecciones existentes
+        </h2>
+
+
+        {% if lessons %}
+
+
+            {% for lesson in lessons %}
+
+
+            <div class="lesson-admin">
+
+
+                <h3>
+                    {{ lesson.title }}
+                </h3>
+
+
+                <p>
+                    ID: {{ lesson.id }}
+                </p>
+
+
+                <a
+                href="{{ url_for('lesson', id=lesson.id) }}">
+                    Ver lección
+                </a>
+
+
+            </div>
+
+
+            {% endfor %}
+
+
+
+        {% else %}
+
+
+            <p>
+                No hay lecciones creadas.
+            </p>
+
+
+        {% endif %}
+
+
+
+    </section>
+
+
+</main>
+
+
+
+<footer>
 
 <p>
-Escribe comandos de administración:
+© 2026 Academy Blox Script
 </p>
 
+</footer>
 
-<pre>
-users
-makeadmin correo
-delete correo
-</pre>
-
-
-
-<form method="POST" action="/admin/console">
-
-
-<input
-name="command"
-placeholder="Comando"
-required
->
-
-
-<button class="button">
-Ejecutar
-</button>
-
-
-</form>
-
-
-</div>
-
-
-
-
-
-<div class="card">
-
-<h2>
-Usuarios
-</h2>
-
-
-{% for user in users %}
-
-
-<p>
-
-{{ user.email }}
-
-|
-
-{% if user.is_admin %}
-
-ADMIN
-
-{% else %}
-
-Usuario
-
-{% endif %}
-
-</p>
-
-
-{% endfor %}
-
-
-</div>
-
-
-
-<a href="/" class="button">
-Volver
-</a>
-
-
-</div>
 
 
 </body>
