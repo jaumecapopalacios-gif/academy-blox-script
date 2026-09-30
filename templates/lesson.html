@@ -1,128 +1,42 @@
 <!DOCTYPE html>
-<html lang="es">
+
+<html>
 
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-    <title>{{ title }} | Academy Blox Script</title>
+<link rel="stylesheet" href="{{url_for('static',filename='style.css')}}">
 
-    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 </head>
+
 
 <body>
 
-<header>
 
-    <div class="logo">
-        ACADEMY BLOX SCRIPT
-    </div>
-
-</header>
+<div class="container">
 
 
-<section class="hero">
-
-    <div class="container">
-
-        <p class="blue">
-            LECCIÓN {{ number }} / {{ total }}
-        </p>
-
-        <h1>
-            {{ title }}
-        </h1>
-
-        <p>
-            {{ explanation }}
-        </p>
-
-    </div>
-
-</section>
+<h1>
+{{lesson.title}}
+</h1>
 
 
-<section class="lessons">
+<div class="card">
 
-    <div class="container">
-
-        <div class="card">
-
-            <h2>
-                ¿Qué aprenderás?
-            </h2>
-
-            <p>
-                {{ explanation }}
-            </p>
-
-        </div>
+<p>
+{{lesson.content}}
+</p>
 
 
-        <br>
+</div>
 
 
-        <div class="card">
-
-            <h2>
-                Práctica
-            </h2>
-
-            <p>
-                {{ practice }}
-            </p>
-
-        </div>
+<a class="button" href="/">
+Volver
+</a>
 
 
-        <br>
+</div>
 
-
-        <div>
-
-            {% if number > 1 %}
-
-            <a
-                href="{{ url_for('lesson', number=number-1) }}"
-                class="button"
-            >
-                ← Lección anterior
-            </a>
-
-            {% endif %}
-
-
-            {% if number < total %}
-
-            <a
-                href="{{ url_for('lesson', number=number+1) }}"
-                class="button"
-            >
-                Siguiente lección →
-            </a>
-
-            {% endif %}
-
-        </div>
-
-
-        <br>
-
-
-        <a href="{{ url_for('index') }}">
-            ← Volver a las lecciones
-        </a>
-
-    </div>
-
-</section>
-
-
-<footer>
-
-    Academy Blox Script
-
-</footer>
 
 </body>
 
