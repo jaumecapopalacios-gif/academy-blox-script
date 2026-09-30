@@ -2,24 +2,13 @@ import os
 import sqlite3
 from datetime import date
 
-from flask import (
-    Flask,
-    render_template,
-    request,
-    redirect,
-    url_for,
-    session,
-    flash,
-    jsonify
-)
-
+from flask import Flask, render_template, request, redirect, url_for, session, flash, jsonify
 from werkzeug.security import generate_password_hash, check_password_hash
 
 try:
     from openai import OpenAI
 except ImportError:
     OpenAI = None
-
 
 app = Flask(__name__)
 
@@ -39,11 +28,6 @@ OPENAI_API_KEY = os.environ.get("OPENAI_API_KEY")
 
 AI_DAILY_LIMIT = 10
 
-
-# ============================================================
-# OPENAI
-# ============================================================
-
 ai_client = None
 
 if OPENAI_API_KEY and OpenAI:
@@ -52,10 +36,6 @@ if OPENAI_API_KEY and OpenAI:
     except Exception:
         ai_client = None
 
-
-# ============================================================
-# LECCIONES
-# ============================================================
 
 LESSONS = [
     {
@@ -66,16 +46,7 @@ LESSONS = [
 Roblox Studio es la herramienta utilizada para crear experiencias
 en Roblox.
 
-Con Roblox Studio puedes crear mapas, juegos, sistemas,
-interfaces, personajes y mucho más.
-
-Antes de empezar a programar es importante conocer las partes
-principales del programa:
-- Explorer
-- Properties
-- Workspace
-- ServerScriptService
-- StarterGui
+Puedes crear mapas, juegos, sistemas, interfaces y mucho más.
 """
     },
     {
@@ -85,21 +56,15 @@ principales del programa:
         "content": """
 Los scripts de Roblox utilizan Luau.
 
-Un ejemplo sencillo es:
+Ejemplo:
 
 print("Hola Roblox")
-
-Cuando ejecutes el juego, Roblox mostrará ese mensaje
-en la ventana Output.
-
-Los scripts pueden utilizarse para crear sistemas,
-eventos, botones, movimientos y muchas otras funciones.
 """
     },
     {
         "id": 3,
         "title": "Variables en Luau",
-        "description": "Aprende a guardar información utilizando variables.",
+        "description": "Aprende a utilizar variables.",
         "content": """
 Una variable permite guardar información.
 
@@ -107,10 +72,6 @@ Ejemplo:
 
 local nombre = "Jugador"
 local monedas = 100
-
-Después puedes utilizar esas variables dentro del script.
-
-Por ejemplo:
 
 print(nombre)
 print(monedas)
@@ -123,16 +84,11 @@ print(monedas)
         "content": """
 Los eventos permiten que un script reaccione cuando ocurre algo.
 
-Por ejemplo, una pieza puede detectar cuando un jugador
-la toca.
-
 Ejemplo:
 
 part.Touched:Connect(function(hit)
     print("La pieza fue tocada")
 end)
-
-Los eventos son fundamentales para crear juegos interactivos.
 """
     },
     {
@@ -140,8 +96,8 @@ Los eventos son fundamentales para crear juegos interactivos.
         "title": "Funciones",
         "description": "Aprende a crear funciones en Luau.",
         "content": """
-Una función es un bloque de código que puedes ejecutar
-cuando lo necesites.
+Una función es un bloque de código que puedes ejecutar cuando
+lo necesites.
 
 Ejemplo:
 
@@ -150,17 +106,10 @@ local function saludar()
 end
 
 saludar()
-
-Las funciones ayudan a organizar los scripts y evitar
-repetir código.
 """
     }
 ]
 
-
-# ============================================================
-# BASE DE DATOS
-# ============================================================
 
 def get_db():
     connection = sqlite3.connect(DATABASE)
@@ -200,10 +149,6 @@ def init_db():
 init_db()
 
 
-# ============================================================
-# FUNCIONES DE USUARIO
-# ============================================================
-
 def get_current_user():
     user_id = session.get("user_id")
 
@@ -225,10 +170,6 @@ def get_current_user():
 def login_required():
     return "user_id" in session
 
-
-# ============================================================
-# FUNCIONES DE IA
-# ============================================================
 
 def get_ai_usage(user_id):
     today = date.today().isoformat()
@@ -254,14 +195,7 @@ def get_ai_usage(user_id):
 
 
 def get_ai_remaining(user_id):
-    used = get_ai_usage(user_id)
-
-    remaining = AI_DAILY_LIMIT - used
-
-    if remaining < 0:
-        remaining = 0
-
-    return remaining
+    return max(0, AI_DAILY_LIMIT - get_ai_usage(user_id))
 
 
 def consume_ai_message(user_id):
@@ -289,10 +223,6 @@ def consume_ai_message(user_id):
     connection.close()
 
 
-# ============================================================
-# PÁGINA PRINCIPAL
-# ============================================================
-
 @app.route("/")
 def index():
 
@@ -304,10 +234,6 @@ def index():
         lessons=LESSONS
     )
 
-
-# ============================================================
-# REGISTRO
-# ============================================================
 
 @app.route("/register", methods=["GET", "POST"])
 def register():
@@ -330,7 +256,6 @@ def register():
 
         if existing:
             connection.close()
-
             flash("Ese correo ya está registrado.")
             return redirect(url_for("register"))
 
@@ -352,14 +277,11 @@ def register():
         connection.close()
 
         flash("Cuenta creada correctamente.")
+
         return redirect(url_for("login"))
 
     return render_template("register.html")
 
-
-# ============================================================
-# LOGIN
-# ============================================================
 
 @app.route("/login", methods=["GET", "POST"])
 def login():
@@ -404,21 +326,11 @@ def login():
     return render_template("login.html")
 
 
-# ============================================================
-# LOGOUT
-# ============================================================
-
 @app.route("/logout")
 def logout():
-
     session.clear()
-
     return redirect(url_for("login"))
 
-
-# ============================================================
-# LECCIONES
-# ============================================================
 
 @app.route("/lesson/<int:lesson_id>")
 def lesson(lesson_id):
@@ -467,10 +379,6 @@ def ai_page():
     )
 
 
-# ============================================================
-# CHAT DE ACADEMY AI
-# ============================================================
-
 @app.route("/ai/chat", methods=["POST"])
 def academy_ai():
 
@@ -488,10 +396,6 @@ def academy_ai():
             "error": "Sesión no válida."
         }), 401
 
-    # --------------------------------------------------------
-    # Comprobar límite
-    # --------------------------------------------------------
-
     remaining = get_ai_remaining(user["id"])
 
     if remaining <= 0:
@@ -501,19 +405,11 @@ def academy_ai():
             "remaining": 0
         }), 429
 
-    # --------------------------------------------------------
-    # Comprobar API
-    # --------------------------------------------------------
-
     if ai_client is None:
         return jsonify({
             "success": False,
-            "error": "La IA todavía no está configurada. Comprueba OPENAI_API_KEY en Render."
+            "error": "La IA no está configurada. Comprueba OPENAI_API_KEY en Render."
         }), 503
-
-    # --------------------------------------------------------
-    # Obtener pregunta
-    # --------------------------------------------------------
 
     data = request.get_json(silent=True) or {}
 
@@ -530,12 +426,8 @@ def academy_ai():
     if len(question) > 4000:
         return jsonify({
             "success": False,
-            "error": "La pregunta es demasiado larga. Máximo 4000 caracteres."
+            "error": "La pregunta es demasiado larga."
         }), 400
-
-    # --------------------------------------------------------
-    # Instrucciones de Academy AI
-    # --------------------------------------------------------
 
     instructions = """
 Eres Academy AI, el asistente educativo de Academy Blox Script.
@@ -553,32 +445,21 @@ Responde en español.
 
 Explica las cosas de forma sencilla y paso a paso.
 
-Si el usuario pide código:
-- entrega código completo cuando sea necesario;
-- usa Luau correcto;
-- explica dónde colocar el script;
-- indica si debe utilizar Script, LocalScript o ModuleScript;
-- explica qué debe hacer después de pegarlo.
+Cuando el usuario pida código:
+- utiliza Luau correcto;
+- explica dónde colocar el código;
+- indica si debe ser Script, LocalScript o ModuleScript;
+- explica qué debe hacer después.
 
-Si el usuario es principiante, evita asumir conocimientos avanzados.
+Si el usuario es principiante, explica desde cero.
 
-No inventes funciones de Roblox.
+Si el usuario muestra un error, explica el problema y proporciona
+una versión corregida.
 
-Si existe un error en el código del usuario, explica cuál es el problema
-y proporciona una versión corregida.
-
-Mantén las respuestas útiles y relativamente concisas.
+Mantén las respuestas claras y útiles.
 """
 
-    # --------------------------------------------------------
-    # Consumir mensaje
-    # --------------------------------------------------------
-
     consume_ai_message(user["id"])
-
-    # --------------------------------------------------------
-    # Llamar a OpenAI
-    # --------------------------------------------------------
 
     try:
 
@@ -650,10 +531,6 @@ def admin():
     )
 
 
-# ============================================================
-# ACTIVAR ADMIN
-# ============================================================
-
 @app.route("/activate-admin", methods=["POST"])
 def activate_admin():
 
@@ -690,10 +567,6 @@ def activate_admin():
     return redirect(url_for("admin"))
 
 
-# ============================================================
-# CONSOLA ADMIN
-# ============================================================
-
 @app.route("/admin/console", methods=["POST"])
 def admin_console():
 
@@ -716,14 +589,9 @@ def admin_console():
         return redirect(url_for("admin"))
 
     parts = command.split()
-
     action = parts[0].lower()
 
     connection = get_db()
-
-    # --------------------------------------------------------
-    # HELP
-    # --------------------------------------------------------
 
     if action == "help":
 
@@ -731,10 +599,6 @@ def admin_console():
             "Comandos: users | stats | block email | unblock email | "
             "makeadmin email | removeadmin email | delete email"
         )
-
-    # --------------------------------------------------------
-    # USERS
-    # --------------------------------------------------------
 
     elif action == "users":
 
@@ -761,10 +625,6 @@ def admin_console():
             flash(
                 f'{u["email"]} - {label}'
             )
-
-    # --------------------------------------------------------
-    # STATS
-    # --------------------------------------------------------
 
     elif action == "stats":
 
@@ -794,10 +654,6 @@ def admin_console():
             f"Bloqueados: {blocked}"
         )
 
-    # --------------------------------------------------------
-    # BLOCK
-    # --------------------------------------------------------
-
     elif action == "block" and len(parts) >= 2:
 
         email = parts[1].lower()
@@ -812,10 +668,6 @@ def admin_console():
         )
 
         flash(f"Usuario bloqueado: {email}")
-
-    # --------------------------------------------------------
-    # UNBLOCK
-    # --------------------------------------------------------
 
     elif action == "unblock" and len(parts) >= 2:
 
@@ -832,10 +684,6 @@ def admin_console():
 
         flash(f"Usuario desbloqueado: {email}")
 
-    # --------------------------------------------------------
-    # MAKE ADMIN
-    # --------------------------------------------------------
-
     elif action == "makeadmin" and len(parts) >= 2:
 
         email = parts[1].lower()
@@ -851,10 +699,6 @@ def admin_console():
 
         flash(f"Administrador creado: {email}")
 
-    # --------------------------------------------------------
-    # REMOVE ADMIN
-    # --------------------------------------------------------
-
     elif action == "removeadmin" and len(parts) >= 2:
 
         email = parts[1].lower()
@@ -869,10 +713,6 @@ def admin_console():
         )
 
         flash(f"Administrador eliminado: {email}")
-
-    # --------------------------------------------------------
-    # DELETE
-    # --------------------------------------------------------
 
     elif action == "delete" and len(parts) >= 2:
 
@@ -920,10 +760,6 @@ def admin_console():
 
     return redirect(url_for("admin"))
 
-
-# ============================================================
-# EJECUTAR
-# ============================================================
 
 if __name__ == "__main__":
 
