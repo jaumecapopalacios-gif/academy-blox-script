@@ -3,16 +3,62 @@
 
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Academy Blox Script</title>
+
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 </head>
 
 <body>
 
+<header>
+    <h1>ACADEMY BLOX SCRIPT</h1>
+</header>
 
-<pre>
-{{ current_user }}
-</pre>
+
+<section>
+
+    <h2>
+        Bienvenido a Academy Blox Script
+    </h2>
+
+
+    <p>
+        Usuario conectado:
+        {{ user["email"] }}
+    </p>
+
+
+    <h2>
+        Lecciones
+    </h2>
+
+
+    {% for lesson in lessons %}
+
+    <div>
+
+        <h3>
+            {{ lesson["title"] }}
+        </h3>
+
+        <p>
+            {{ lesson["description"] }}
+        </p>
+
+    </div>
+
+    {% endfor %}
+
+
+    <br>
+
+    <a href="/logout">
+        Cerrar sesión
+    </a>
+
+
+</section>
+
 
 </body>
 
