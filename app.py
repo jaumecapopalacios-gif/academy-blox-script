@@ -1,16 +1,21 @@
 import os
 import sqlite3
 
-from flask import Flask, render_template, request, redirect, url_for, session, flash
+from flask import Flask, render_template, request, redirect, url_for, session, flash, jsonify
 from werkzeug.security import generate_password_hash, check_password_hash
 
 
 app = Flask(__name__)
 
-app.secret_key = "academy-blox-secret"
+app.secret_key = os.environ.get(
+    "SECRET_KEY",
+    "academy-blox-secret"
+)
 
 
 DATABASE = "academy.db"
+
+ADMIN_CODE = "BLOX-ADMIN-9382"
 
 
 LESSONS = [
@@ -20,153 +25,143 @@ LESSONS = [
     },
     {
         "title": "Primer Script en Luau",
-        "description": "Aprende a programar en Roblox."
+        "description": "Crea tus primeros scripts."
     },
     {
-        "title": "Variables",
-        "description": "Aprende variables en Luau."
+        "title": "Sistemas avanzados",
+        "description": "Aprende sistemas para juegos."
     }
 ]
 
 
-def get_db():
-    db = sqlite3.connect(DATABASE)
-    db.row_factory = sqlite3.Row
-    return db
+def db():
+    con = sqlite3.connect(DATABASE)
+    con.row_factory = sqlite3.Row
+    return con
 
 
-def init_db():
 
-    db = get_db()
+def setup():
 
-    db.execute("""
+    con = db()
+
+    con.execute("""
     CREATE TABLE IF NOT EXISTS users(
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         email TEXT UNIQUE,
-        password TEXT
+        password TEXT,
+        admin INTEGER DEFAULT 0
     )
     """)
 
-    db.commit()
-    db.close()
+    con.commit()
+    con.close()
 
 
-init_db()
+
+setup()
 
 
-def current_user():
 
-    if "user_id" not in session:
+def user():
+
+    if "id" not in session:
         return None
 
-    db = get_db()
+    con = db()
 
-    user = db.execute(
+    result = con.execute(
         "SELECT * FROM users WHERE id=?",
-        (session["user_id"],)
+        (session["id"],)
     ).fetchone()
 
-    db.close()
+    con.close()
 
-    return user
+    return result
 
 
 
 @app.route("/")
-def index():
+def home():
 
-    user = current_user()
+    u = user()
 
-    if not user:
-        return redirect(url_for("login"))
+    if not u:
+        return redirect("/login")
 
     return render_template(
         "index.html",
-        user=user,
+        user=u,
         lessons=LESSONS
     )
 
 
 
-@app.route("/register", methods=["GET", "POST"])
+@app.route("/register", methods=["GET","POST"])
 def register():
 
     if request.method == "POST":
 
-        email = request.form["email"]
-        password = request.form["password"]
+        email=request.form["email"]
+        password=request.form["password"]
 
-        db = get_db()
-
-        password_hash = generate_password_hash(password)
+        con=db()
 
         try:
-
-            db.execute(
+            con.execute(
                 "INSERT INTO users(email,password) VALUES(?,?)",
-                (email,password_hash)
+                (
+                    email,
+                    generate_password_hash(password)
+                )
             )
 
-            db.commit()
+            con.commit()
 
         except:
 
-            flash("Ese usuario ya existe.")
-
-            return redirect(
-                url_for("register")
-            )
-
-        db.close()
-
-        return redirect(
-            url_for("login")
-        )
+            flash("Usuario ya existe")
+            return redirect("/register")
 
 
-    return render_template(
-        "register.html"
-    )
+        con.close()
+
+        return redirect("/login")
+
+
+    return render_template("register.html")
 
 
 
 @app.route("/login", methods=["GET","POST"])
 def login():
 
-    if request.method == "POST":
+    if request.method=="POST":
 
-        email = request.form["email"]
-        password = request.form["password"]
+        email=request.form["email"]
+        password=request.form["password"]
 
+        con=db()
 
-        db = get_db()
-
-        user = db.execute(
+        u=con.execute(
             "SELECT * FROM users WHERE email=?",
             (email,)
         ).fetchone()
 
-        db.close()
+        con.close()
 
 
-        if user and check_password_hash(
-            user["password"],
-            password
-        ):
+        if u and check_password_hash(u["password"],password):
 
-            session["user_id"] = user["id"]
+            session["id"]=u["id"]
 
-            return redirect(
-                url_for("index")
-            )
+            return redirect("/")
 
 
-        flash("Datos incorrectos.")
+        flash("Datos incorrectos")
 
 
-    return render_template(
-        "login.html"
-    )
+    return render_template("login.html")
 
 
 
@@ -175,37 +170,89 @@ def logout():
 
     session.clear()
 
-    return redirect(
-        url_for("login")
-    )
+    return redirect("/login")
 
 
 
-@app.route("/lesson/<int:number>")
-def lesson(number):
+@app.route("/admin")
+def admin():
 
-    user = current_user()
+    u=user()
 
-    if not user:
-        return redirect(
-            url_for("login")
-        )
+    if not u or u["admin"]!=1:
+        return redirect("/")
+
+
+    con=db()
+
+    users=con.execute(
+        "SELECT * FROM users"
+    ).fetchall()
+
+    con.close()
+
 
     return render_template(
-        "lesson.html",
-        lesson=LESSONS[number-1]
+        "admin.html",
+        users=users
     )
 
 
 
-if __name__ == "__main__":
+@app.route("/activate-admin",methods=["POST"])
+def activate_admin():
+
+    u=user()
+
+    if not u:
+        return redirect("/login")
+
+
+    code=request.form["code"]
+
+
+    if code==ADMIN_CODE:
+
+        con=db()
+
+        con.execute(
+            "UPDATE users SET admin=1 WHERE id=?",
+            (u["id"],)
+        )
+
+        con.commit()
+        con.close()
+
+
+    return redirect("/")
+
+
+
+@app.route("/ai")
+def ai():
+
+    if not user():
+        return redirect("/login")
+
+    return render_template("ai.html")
+
+
+
+@app.route("/ai/chat",methods=["POST"])
+def ai_chat():
+
+    data=request.json
+
+    return jsonify({
+        "answer":
+        "Academy AI está conectada. Próximamente responderá preguntas de Roblox Studio."
+    })
+
+
+
+if __name__=="__main__":
 
     app.run(
         host="0.0.0.0",
-        port=int(
-            os.environ.get(
-                "PORT",
-                5000
-            )
-        )
+        port=int(os.environ.get("PORT",5000))
     )
