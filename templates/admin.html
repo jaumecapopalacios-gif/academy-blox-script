@@ -1,358 +1,51 @@
 <!DOCTYPE html>
-
 <html lang="es">
 
 <head>
 
-```
-<meta charset="UTF-8">
+<title>Admin</title>
 
-<meta
-    name="viewport"
-    content="width=device-width, initial-scale=1.0"
->
-
-<title>Admin | Academy Blox Script</title>
-
-<link
-    rel="stylesheet"
-    href="{{ url_for('static', filename='style.css') }}"
->
-
-<style>
-
-    .console {
-        margin-top: 35px;
-        padding: 25px;
-        border: 1px solid #168cff;
-        border-radius: 16px;
-        background: #03060b;
-        box-shadow: 0 0 25px rgba(22, 140, 255, 0.12);
-    }
-
-    .console-title {
-        color: #168cff;
-        font-size: 20px;
-        font-weight: bold;
-        margin-bottom: 15px;
-    }
-
-    .console-output {
-        min-height: 180px;
-        margin-bottom: 15px;
-        padding: 18px;
-        border-radius: 10px;
-        border: 1px solid #19273c;
-        background: #010308;
-        color: #7cff9b;
-        font-family: Consolas, monospace;
-        font-size: 14px;
-        white-space: pre-wrap;
-        overflow-x: auto;
-    }
-
-    .console-form {
-        display: flex;
-        gap: 10px;
-        width: 100%;
-    }
-
-    .console-form input {
-        flex: 1;
-        width: 100%;
-        min-width: 0;
-        box-sizing: border-box;
-        padding: 14px;
-        border: 1px solid #24344d;
-        border-radius: 10px;
-        background: #05070d;
-        color: white;
-        outline: none;
-        font-family: Consolas, monospace;
-        font-size: 15px;
-        pointer-events: auto;
-        user-select: text;
-    }
-
-    .console-form input:focus {
-        border-color: #168cff;
-        box-shadow: 0 0 15px rgba(22, 140, 255, 0.15);
-    }
-
-    .console-form button {
-        padding: 14px 20px;
-        border: none;
-        border-radius: 10px;
-        background: #168cff;
-        color: white;
-        font-weight: bold;
-        cursor: pointer;
-    }
-
-    .console-form button:hover {
-        opacity: 0.9;
-    }
-
-    .command-help {
-        margin-top: 15px;
-        color: #6d7c91;
-        font-family: Consolas, monospace;
-        font-size: 13px;
-        line-height: 1.8;
-    }
-
-    .user-row {
-        padding: 15px 0;
-        border-bottom: 1px solid #19273c;
-    }
-
-    .user-row:last-child {
-        border-bottom: none;
-    }
-
-</style>
-```
+<link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 
 </head>
 
+
 <body>
 
-<header>
 
-```
-<div class="logo">
-    ACADEMY BLOX SCRIPT
-</div>
-```
+<h1>
+Panel Administrador
+</h1>
 
-</header>
 
-<section class="lessons">
+<h2>
+Usuarios
+</h2>
 
-```
-<div class="container">
 
+{% for u in users %}
 
-    <h1>
-        Panel de administrador
-    </h1>
+<div class="card">
 
-    <p>
-        Controla Academy Blox Script desde aquí.
-    </p>
+{{ u["email"] }}
 
-
-    <div class="lesson-grid">
-
-
-        <div class="card">
-
-            <h2>
-                {{ total_users }}
-            </h2>
-
-            <p>
-                Usuarios
-            </p>
-
-        </div>
-
-
-        <div class="card">
-
-            <h2>
-                {{ total_students }}
-            </h2>
-
-            <p>
-                Alumnos
-            </p>
-
-        </div>
-
-
-        <div class="card">
-
-            <h2>
-                {{ total_admins }}
-            </h2>
-
-            <p>
-                Administradores
-            </p>
-
-        </div>
-
-
-        <div class="card">
-
-            <h2>
-                {{ total_blocked }}
-            </h2>
-
-            <p>
-                Bloqueados
-            </p>
-
-        </div>
-
-
-    </div>
-
-
-    <div class="console">
-
-        <div class="console-title">
-            ACADEMY BLOX SCRIPT / ADMIN CONSOLE
-        </div>
-
-
-        <div class="console-output">
-
-            {% if console_output %}
-
-                {{ console_output }}
-
-            {% else %}
-
-                Escribe "help" para ver los comandos.
-
-            {% endif %}
-
-        </div>
-
-
-        <form
-            class="console-form"
-            method="POST"
-            action="{{ url_for('admin_console') }}"
-        >
-
-            <input
-                id="command"
-                type="text"
-                name="command"
-                placeholder="Escribe un comando..."
-                autocomplete="off"
-                autocapitalize="off"
-                spellcheck="false"
-                autofocus
-                required
-            >
-
-            <button type="submit">
-                EJECUTAR
-            </button>
-
-        </form>
-
-
-        <div class="command-help">
-
-            <strong>Comandos disponibles:</strong><br><br>
-
-            help<br>
-            users<br>
-            stats<br>
-            block correo@ejemplo.com<br>
-            unblock correo@ejemplo.com<br>
-            makeadmin correo@ejemplo.com<br>
-            removeadmin correo@ejemplo.com<br>
-            delete correo@ejemplo.com
-
-        </div>
-
-    </div>
-
-
-    <br>
-    <br>
-
-
-    <div class="card">
-
-        <h2>
-            Usuarios registrados
-        </h2>
-
-        <br>
-
-
-        {% if users %}
-
-            {% for user in users %}
-
-            <div class="user-row">
-
-                <h3>
-                    {{ user["email"] }}
-                </h3>
-
-                <p>
-
-                    {% if user["is_admin"] %}
-
-                        ADMINISTRADOR
-
-                    {% else %}
-
-                        ALUMNO
-
-                    {% endif %}
-
-                    ·
-
-                    {% if user["is_blocked"] %}
-
-                        BLOQUEADO
-
-                    {% else %}
-
-                        ACTIVO
-
-                    {% endif %}
-
-                </p>
-
-            </div>
-
-            {% endfor %}
-
-        {% else %}
-
-            <p>
-                No hay usuarios registrados.
-            </p>
-
-        {% endif %}
-
-
-    </div>
-
-
-    <br>
-
-
-    <a
-        href="{{ url_for('index') }}"
-        class="button"
-    >
-        VOLVER A LA ACADEMIA
-    </a>
-
+{% if u["admin"] == 1 %}
+ADMIN
+{% endif %}
 
 </div>
-```
 
-</section>
 
-<footer>
+{% endfor %}
 
-```
-Academy Blox Script
-```
 
-</footer>
+
+<br>
+
+<a href="/">
+Volver
+</a>
+
 
 </body>
 
