@@ -3,7 +3,11 @@
 
 <head>
 
-<title>Panel Administrador</title>
+<meta charset="UTF-8">
+
+<title>
+Panel Admin - Academy Blox Script
+</title>
 
 <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 
@@ -16,7 +20,7 @@
 <header>
 
 <h1>
-⚡ PANEL ADMINISTRADOR
+⚡ CONSOLA ADMINISTRADOR
 </h1>
 
 </header>
@@ -26,23 +30,20 @@
 <div class="container">
 
 
-
 <div class="card">
 
 <h2>
-Consola de administración
+Comandos
 </h2>
 
 
 <p>
-Comandos disponibles:
+Escribe comandos de administración:
 </p>
 
 
 <pre>
 users
-block correo
-unblock correo
 makeadmin correo
 delete correo
 </pre>
@@ -52,9 +53,9 @@ delete correo
 <form method="POST" action="/admin/console">
 
 
-<input 
+<input
 name="command"
-placeholder="Escribe un comando"
+placeholder="Comando"
 required
 >
 
@@ -76,29 +77,22 @@ Ejecutar
 <div class="card">
 
 <h2>
-Usuarios registrados
+Usuarios
 </h2>
-
 
 
 {% for user in users %}
 
 
-<div class="card">
-
-
-<p>
-<b>
-{{user.email}}
-</b>
-</p>
-
-
 <p>
 
-{% if user.admin %}
+{{ user.email }}
 
-Administrador
+|
+
+{% if user.is_admin %}
+
+ADMIN
 
 {% else %}
 
@@ -106,19 +100,7 @@ Usuario
 
 {% endif %}
 
-
-
-{% if user.blocked %}
-
-| Bloqueado
-
-{% endif %}
-
 </p>
-
-
-</div>
-
 
 
 {% endfor %}
@@ -128,47 +110,12 @@ Usuario
 
 
 
-
-
-<div class="card">
-
-
-<h2>
-Activar administrador
-</h2>
-
-
-<form method="POST" action="/activate-admin">
-
-
-<input
-type="password"
-name="code"
-placeholder="Código administrador"
-required
->
-
-
-<button class="button">
-Activar
-</button>
-
-
-</form>
-
-
-</div>
-
-
-
-
-<a class="button" href="/">
+<a href="/" class="button">
 Volver
 </a>
 
 
 </div>
-
 
 
 </body>
