@@ -1,115 +1,92 @@
 <!DOCTYPE html>
 <html lang="es">
+
 <head>
+
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-    <title>{{ lesson.title }} - Academy Blox Script</title>
+    <meta name="viewport"
+          content="width=device-width, initial-scale=1.0">
 
-    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <title>{{ lesson.title }} | Academy Blox Script</title>
+
+    <link rel="stylesheet"
+          href="{{ url_for('static', filename='style.css') }}">
+
 </head>
+
 
 <body>
 
-    <header class="navbar">
-        <div class="logo">
-            🔥 Academy Blox Script
-        </div>
 
-        <nav>
-            <a href="{{ url_for('index') }}">Inicio</a>
+<header class="navbar">
 
-            {% if session.get('username') %}
-                <a href="{{ url_for('logout') }}">Cerrar sesión</a>
-            {% else %}
-                <a href="{{ url_for('login') }}">Iniciar sesión</a>
-            {% endif %}
-        </nav>
-    </header>
+    <a class="logo"
+       href="{{ url_for('index') }}">
+        🔥 Academy Blox Script
+    </a>
 
 
-    <main class="lesson-container">
+    <nav>
 
-        <div class="lesson-card">
+        <a href="{{ url_for('index') }}">
+            Inicio
+        </a>
 
-            <div class="lesson-header">
+        <a href="{{ url_for('scripts') }}">
+            Scripts
+        </a>
 
-                <span class="lesson-number">
-                    LECCIÓN {{ lesson.id }}
-                </span>
+    </nav>
 
-                <h1>{{ lesson.title }}</h1>
-
-            </div>
-
-
-            <div class="lesson-content">
-
-                {% if lesson.description %}
-                    <p class="lesson-description">
-                        {{ lesson.description }}
-                    </p>
-                {% endif %}
+</header>
 
 
-                {% if lesson.content %}
 
-                    <div class="content">
-                        {{ lesson.content | safe }}
-                    </div>
-
-                {% else %}
-
-                    <p>
-                        Esta lección todavía no tiene contenido.
-                    </p>
-
-                {% endif %}
-
-            </div>
+<main class="section">
 
 
-            <div class="lesson-actions">
+    <article class="lesson-page">
 
-                {% if lesson.id > 1 %}
-
-                    <a
-                        href="{{ url_for('lesson', id=lesson.id - 1) }}"
-                        class="btn secondary"
-                    >
-                        ← Lección anterior
-                    </a>
-
-                {% endif %}
+        <span class="lesson-number">
+            LECCIÓN {{ lesson.id }}
+        </span>
 
 
-                <a
-                    href="{{ url_for('index') }}"
-                    class="btn"
-                >
-                    Volver al inicio
-                </a>
+        <span class="tag">
+            {{ lesson.category }}
+        </span>
 
 
-                <a
-                    href="{{ url_for('lesson', id=lesson.id + 1) }}"
-                    class="btn"
-                >
-                    Siguiente lección →
-                </a>
-
-            </div>
-
-        </div>
-
-    </main>
+        <h1>
+            {{ lesson.title }}
+        </h1>
 
 
-    <footer>
-        <p>
-            © 2026 Academy Blox Script
+        <p class="lesson-description">
+            {{ lesson.description }}
         </p>
-    </footer>
+
+
+        <div class="lesson-content">
+
+            {{ lesson.content | safe }}
+
+        </div>
+
+
+        <a class="btn"
+           href="{{ url_for('index') }}">
+
+            ← Volver
+
+        </a>
+
+    </article>
+
+
+</main>
 
 </body>
+
 </html>
