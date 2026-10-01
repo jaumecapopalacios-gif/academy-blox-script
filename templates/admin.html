@@ -4,11 +4,14 @@
 <head>
 
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-    <title>Admin - Academy Blox Script</title>
+    <meta name="viewport"
+          content="width=device-width, initial-scale=1.0">
 
-    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <title>Administrador | Academy Blox Script</title>
+
+    <link rel="stylesheet"
+          href="{{ url_for('static', filename='style.css') }}">
 
 </head>
 
@@ -18,9 +21,10 @@
 
 <header class="navbar">
 
-    <div class="logo">
-        🔥 Academy Blox Script Admin
-    </div>
+    <a class="logo"
+       href="{{ url_for('index') }}">
+        ⚙️ Academy Admin
+    </a>
 
 
     <nav>
@@ -29,9 +33,8 @@
             Inicio
         </a>
 
-
         <a href="{{ url_for('logout') }}">
-            Cerrar sesión
+            Salir
         </a>
 
     </nav>
@@ -40,127 +43,303 @@
 
 
 
-<main class="admin-container">
+<main class="section">
 
 
-    <h1>
-        Panel de administrador
-    </h1>
+    <div class="admin-header">
+
+        <span class="section-label">
+            ADMINISTRACIÓN
+        </span>
+
+        <h1>
+            Panel de administrador
+        </h1>
+
+        <p>
+            Gestiona usuarios, lecciones y scripts.
+        </p>
+
+    </div>
 
 
-    <section class="admin-card">
 
+    <!-- CREAR LECCIÓN -->
+
+    <section class="admin-panel">
 
         <h2>
-            Crear nueva lección
+            Crear lección
         </h2>
 
 
         <form method="POST">
 
+            <input
+                type="hidden"
+                name="action"
+                value="create_lesson"
+            >
+
 
             <input
-            type="text"
-            name="title"
-            placeholder="Título de la lección"
-            required>
+                name="title"
+                placeholder="Título"
+                required
+            >
+
+
+            <input
+                name="category"
+                placeholder="Categoría"
+                value="Roblox Studio"
+            >
+
+
+            <input
+                name="description"
+                placeholder="Descripción"
+            >
 
 
             <textarea
-            name="description"
-            placeholder="Descripción">
-            </textarea>
+                name="content"
+                rows="10"
+                placeholder="Contenido de la lección"
+            ></textarea>
 
 
-            <textarea
-            name="content"
-            placeholder="Contenido de la lección"
-            rows="10">
-            </textarea>
+            <button class="btn"
+                    type="submit">
 
-
-
-            <button type="submit">
                 Crear lección
+
             </button>
 
-
         </form>
-
 
     </section>
 
 
 
+    <!-- CREAR SCRIPT -->
 
-    <section class="admin-card">
+    <section class="admin-panel">
 
+        <h2>
+            Añadir script
+        </h2>
+
+
+        <form method="POST">
+
+            <input
+                type="hidden"
+                name="action"
+                value="create_script"
+            >
+
+
+            <input
+                name="script_title"
+                placeholder="Nombre del script"
+                required
+            >
+
+
+            <input
+                name="script_category"
+                placeholder="Categoría"
+                value="General"
+            >
+
+
+            <input
+                name="script_description"
+                placeholder="Descripción"
+            >
+
+
+            <textarea
+                name="code"
+                rows="14"
+                placeholder="Pega aquí el código..."
+                required
+            ></textarea>
+
+
+            <button class="btn"
+                    type="submit">
+
+                Añadir script
+
+            </button>
+
+        </form>
+
+    </section>
+
+
+
+    <!-- USUARIOS -->
+
+    <section class="admin-panel">
+
+        <h2>
+            Usuarios
+        </h2>
+
+
+        {% for user in users %}
+
+        <div class="user-row">
+
+            <div>
+
+                <strong>
+                    {{ user.username }}
+                </strong>
+
+                <p>
+                    {{ user.email }}
+                </p>
+
+            </div>
+
+
+            <div>
+
+                {% if user.is_admin %}
+
+                    <span class="tag">
+                        ADMIN
+                    </span>
+
+                {% endif %}
+
+
+                {% if user.is_blocked %}
+
+                    <span class="tag blocked">
+                        BLOQUEADO
+                    </span>
+
+                {% endif %}
+
+
+                {% if user.id != session.get("user_id") %}
+
+                <form method="POST">
+
+                    <input
+                        type="hidden"
+                        name="action"
+                        value="toggle_user"
+                    >
+
+                    <input
+                        type="hidden"
+                        name="user_id"
+                        value="{{ user.id }}"
+                    >
+
+
+                    <button
+                        class="small danger"
+                        type="submit">
+
+                        {% if user.is_blocked %}
+                            Desbloquear
+                        {% else %}
+                            Bloquear
+                        {% endif %}
+
+                    </button>
+
+                </form>
+
+                {% endif %}
+
+            </div>
+
+        </div>
+
+        {% endfor %}
+
+    </section>
+
+
+
+    <!-- LECCIONES -->
+
+    <section class="admin-panel">
 
         <h2>
             Lecciones existentes
         </h2>
 
 
-        {% if lessons %}
+        {% for lesson in lessons %}
 
+        <div class="admin-list-item">
 
-            {% for lesson in lessons %}
+            <strong>
+                {{ lesson.title }}
+            </strong>
 
+            <span>
+                {{ lesson.category }}
+            </span>
 
-            <div class="lesson-admin">
-
-
-                <h3>
-                    {{ lesson.title }}
-                </h3>
-
-
-                <p>
-                    ID: {{ lesson.id }}
-                </p>
-
-
-                <a
-                href="{{ url_for('lesson', id=lesson.id) }}">
-                    Ver lección
-                </a>
-
-
-            </div>
-
-
-            {% endfor %}
-
-
+        </div>
 
         {% else %}
 
+        <p>
+            No hay lecciones.
+        </p>
 
-            <p>
-                No hay lecciones creadas.
-            </p>
+        {% endfor %}
+
+    </section>
 
 
-        {% endif %}
+
+    <!-- SCRIPTS -->
+
+    <section class="admin-panel">
+
+        <h2>
+            Scripts existentes
+        </h2>
 
 
+        {% for script in scripts %}
+
+        <div class="admin-list-item">
+
+            <strong>
+                {{ script.title }}
+            </strong>
+
+            <span>
+                {{ script.category }}
+            </span>
+
+        </div>
+
+        {% else %}
+
+        <p>
+            No hay scripts.
+        </p>
+
+        {% endfor %}
 
     </section>
 
 
 </main>
-
-
-
-<footer>
-
-<p>
-© 2026 Academy Blox Script
-</p>
-
-</footer>
-
-
 
 </body>
 
