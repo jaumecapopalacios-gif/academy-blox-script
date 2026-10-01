@@ -1,44 +1,36 @@
 <!DOCTYPE html>
 <html lang="es">
-
 <head>
-
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-    <meta name="viewport"
-          content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Academy Blox Script - Aprende Roblox Studio y Luau desde cero hasta nivel avanzado.">
+    <meta name="keywords" content="Roblox Studio, Luau, scripts Roblox, programación Roblox, Academy Blox Script">
 
-    <meta name="description"
-          content="Academy Blox Script - aprende Roblox Studio, Luau y programación.">
+    <title>Academy Blox Script | Aprende Roblox Studio</title>
 
-    <meta name="keywords"
-          content="Roblox, Roblox Studio, scripts, Luau, programación, Academy Blox Script">
-
-    <title>Academy Blox Script</title>
-
-    <link rel="stylesheet"
-          href="{{ url_for('static', filename='style.css') }}">
-
+    <link
+        rel="stylesheet"
+        href="{{ url_for('static', filename='style.css') }}"
+    >
 </head>
-
 
 <body>
 
-
 <header class="navbar">
 
-    <a class="logo"
-       href="{{ url_for('index') }}">
-
+    <div class="logo">
         🔥 Academy Blox Script
-
-    </a>
-
+    </div>
 
     <nav>
 
         <a href="{{ url_for('index') }}">
             Inicio
+        </a>
+
+        <a href="{{ url_for('lessons') }}">
+            Lecciones
         </a>
 
         <a href="{{ url_for('scripts') }}">
@@ -49,25 +41,18 @@
             Academy AI
         </a>
 
+        {% if user and user["is_admin"] %}
 
-        {% if session.get("username") %}
-
-            <a href="{{ url_for('account') }}">
-                {{ session.get("username") }}
+            <a href="{{ url_for('admin') }}">
+                Administrador
             </a>
 
+        {% endif %}
 
-            {% if session.get("is_admin") %}
-
-                <a href="{{ url_for('admin') }}">
-                    Admin
-                </a>
-
-            {% endif %}
-
+        {% if user %}
 
             <a href="{{ url_for('logout') }}">
-                Salir
+                Cerrar sesión
             </a>
 
         {% else %}
@@ -76,8 +61,7 @@
                 Iniciar sesión
             </a>
 
-            <a class="nav-button"
-               href="{{ url_for('register') }}">
+            <a href="{{ url_for('register') }}">
                 Crear cuenta
             </a>
 
@@ -88,318 +72,474 @@
 </header>
 
 
-
 <main>
 
 
-<section class="hero">
+    <!-- HERO -->
 
-    <div class="hero-content">
+    <section class="hero">
 
-        <span class="hero-label">
-            ACADEMY ONLINE
-        </span>
+        <div class="hero-content">
 
+            <span class="badge">
+                ROBLOX STUDIO • LUAU
+            </span>
 
-        <h1>
-            ACADEMY
-            <span>BLOX SCRIPT</span>
-        </h1>
+            <h1>
+                Aprende a crear
+                <span>juegos en Roblox</span>
+            </h1>
 
+            <p>
+                Aprende Roblox Studio, programación Luau,
+                sistemas profesionales y creación de juegos
+                desde cero.
+            </p>
 
-        <p>
-            Aprende a crear experiencias, scripts
-            y sistemas para Roblox Studio.
-        </p>
+            <div class="hero-buttons">
 
-
-        <div class="hero-buttons">
-
-            <a class="btn"
-               href="{{ url_for('scripts') }}">
-                Explorar scripts
-            </a>
-
-
-            {% if not session.get("username") %}
-
-                <a class="btn secondary"
-                   href="{{ url_for('register') }}">
-                    Empezar ahora
+                <a
+                    class="btn-primary"
+                    href="{{ url_for('lessons') }}"
+                >
+                    Empezar curso
                 </a>
 
-            {% endif %}
+                <a
+                    class="btn-secondary"
+                    href="{{ url_for('scripts') }}"
+                >
+                    Ver scripts
+                </a>
+
+            </div>
 
         </div>
 
-    </div>
-
-</section>
+    </section>
 
 
+    <!-- ESTADÍSTICAS -->
 
-{% if session.get("username") %}
+    <section class="stats-section">
 
-<section class="section">
+        <div class="stat-card">
 
-    <div class="account-status">
-
-        <div>
+            <strong>
+                24
+            </strong>
 
             <span>
-                CUENTA ACTIVA
+                Lecciones
             </span>
-
-            <h2>
-                {{ session.get("username") }}
-            </h2>
-
-            <p>
-                {{ session.get("email") }}
-            </p>
 
         </div>
 
 
-        <div class="status-dot"></div>
+        <div class="stat-card">
 
-    </div>
+            <strong>
+                {{ scripts|length }}
+            </strong>
 
-</section>
-
-{% endif %}
-
-
-
-<section class="section">
-
-    <div class="section-heading">
-
-        <div>
-
-            <span class="section-label">
-                BIBLIOTECA
-            </span>
-
-            <h2>
+            <span>
                 Scripts
-            </h2>
+            </span>
 
         </div>
 
 
-        <a href="{{ url_for('scripts') }}">
-            Ver todos →
-        </a>
+        <div class="stat-card">
 
-    </div>
+            <strong>
+                100%
+            </strong>
 
-
-
-    <div class="grid">
-
-        {% for script in scripts %}
-
-        <article class="script-card">
-
-            <span class="tag">
-                {{ script.category }}
+            <span>
+                Enfocado en Roblox
             </span>
 
+        </div>
 
-            <h3>
-                {{ script.title }}
-            </h3>
-
-
-            <p>
-                {{ script.description }}
-            </p>
+    </section>
 
 
-            <a class="btn small"
-               href="{{ url_for('script_detail', id=script.id) }}">
+    <!-- LECCIONES -->
 
-                Ver script
+    <section class="home-section">
 
+        <div class="section-header">
+
+            <div>
+
+                <span class="badge">
+                    APRENDE
+                </span>
+
+                <h2>
+                    Curso de Roblox Studio
+                </h2>
+
+                <p>
+                    Aprende desde las herramientas básicas
+                    hasta sistemas avanzados.
+                </p>
+
+            </div>
+
+            <a
+                class="btn-secondary"
+                href="{{ url_for('lessons') }}"
+            >
+                Ver todas
             </a>
 
-        </article>
+        </div>
 
 
-        {% else %}
+        <div class="lessons-grid">
 
-        <article class="empty-card">
+            {% for lesson in lessons[:6] %}
 
-            <h3>
-                Todavía no hay scripts
-            </h3>
+            <article class="lesson-card">
 
-            <p>
-                El administrador puede añadir el primero
-                desde el panel.
-            </p>
+                <div class="lesson-number">
+                    {{ "%02d"|format(lesson["id"]) }}
+                </div>
 
-        </article>
+                <div class="lesson-content">
 
-        {% endfor %}
+                    <span class="lesson-category">
+                        {{ lesson["category"] }}
+                    </span>
 
-    </div>
+                    <h3>
+                        {{ lesson["title"] }}
+                    </h3>
 
-</section>
+                    <p>
+                        {{ lesson["description"] }}
+                    </p>
 
+                    <a
+                        class="btn-primary"
+                        href="{{ url_for('lesson', lesson_id=lesson['id']) }}"
+                    >
+                        Estudiar →
+                    </a>
 
+                </div>
 
-<section class="section">
+            </article>
 
-    <div class="section-heading">
-
-        <div>
-
-            <span class="section-label">
-                APRENDIZAJE
-            </span>
-
-            <h2>
-                Lecciones
-            </h2>
+            {% endfor %}
 
         </div>
 
-    </div>
+    </section>
 
 
-    <div class="grid">
+    <!-- SCRIPTS -->
 
-        {% for lesson in lessons %}
+    <section class="home-section">
 
-        <article class="lesson-card">
+        <div class="section-header">
 
-            <span class="lesson-number">
-                LECCIÓN {{ lesson.id }}
+            <div>
+
+                <span class="badge">
+                    CÓDIGO
+                </span>
+
+                <h2>
+                    Scripts para Roblox
+                </h2>
+
+                <p>
+                    Explora ejemplos de código Luau
+                    para tus proyectos.
+                </p>
+
+            </div>
+
+            <a
+                class="btn-secondary"
+                href="{{ url_for('scripts') }}"
+            >
+                Ver todos
+            </a>
+
+        </div>
+
+
+        <div class="scripts-grid">
+
+            {% for script in scripts[:6] %}
+
+            <article class="script-card">
+
+                <div class="script-card-header">
+
+                    <span class="script-category">
+                        {{ script["category"] }}
+                    </span>
+
+                </div>
+
+
+                <h3>
+                    {{ script["title"] }}
+                </h3>
+
+
+                <p>
+                    {{ script["description"] }}
+                </p>
+
+
+                <div class="script-code">
+
+                    <pre><code>{{ script["code"] }}</code></pre>
+
+                </div>
+
+
+                <div class="script-actions">
+
+                    <button
+                        class="btn-primary"
+                        onclick="copyScript(this)"
+                    >
+                        Copiar script
+                    </button>
+
+                    <a
+                        class="btn-secondary"
+                        href="{{ url_for('scripts') }}"
+                    >
+                        Ver scripts
+                    </a>
+
+                </div>
+
+            </article>
+
+            {% endfor %}
+
+        </div>
+
+    </section>
+
+
+    <!-- ACADEMY AI -->
+
+    <section class="ai-section">
+
+        <div class="ai-box">
+
+            <span class="badge">
+                ACADEMY AI
             </span>
 
-
-            <h3>
-                {{ lesson.title }}
-            </h3>
-
+            <h2>
+                Tu asistente para Roblox Studio
+            </h2>
 
             <p>
-                {{ lesson.description }}
+                Aprende Luau, encuentra errores en tus scripts
+                y recibe explicaciones paso a paso.
             </p>
 
+            <a
+                class="btn-primary"
+                href="{{ url_for('ai') }}"
+            >
+                Abrir Academy AI
+            </a>
 
-            {% if session.get("username") %}
+        </div>
 
-                <a class="btn small"
-                   href="{{ url_for('lesson', id=lesson.id) }}">
-                    Estudiar
-                </a>
+    </section>
 
-            {% else %}
 
-                <a class="btn small"
-                   href="{{ url_for('login') }}">
-                    Iniciar sesión
-                </a>
+    <!-- INFORMACIÓN -->
 
-            {% endif %}
+    <section class="features-section">
 
-        </article>
+        <div class="feature-card">
 
-        {% else %}
-
-        <article class="empty-card">
+            <div class="feature-icon">
+                🎮
+            </div>
 
             <h3>
-                Próximamente
+                Roblox Studio
             </h3>
 
             <p>
-                Las primeras lecciones aparecerán aquí.
+                Aprende a construir mapas, usar Parts,
+                modelos, Terrain y herramientas de Studio.
             </p>
 
-        </article>
-
-        {% endfor %}
-
-    </div>
-
-</section>
+        </div>
 
 
+        <div class="feature-card">
 
-<section class="section ai-banner">
+            <div class="feature-icon">
+                💻
+            </div>
 
-    <div>
+            <h3>
+                Programación Luau
+            </h3>
 
-        <span class="section-label">
-            INTELIGENCIA ARTIFICIAL
-        </span>
+            <p>
+                Aprende variables, funciones, eventos,
+                tablas, RemoteEvents y sistemas avanzados.
+            </p>
 
-        <h2>
-            Academy AI
-        </h2>
-
-        <p>
-            Resuelve dudas sobre Roblox Studio,
-            Luau y programación.
-        </p>
-
-    </div>
+        </div>
 
 
-    <a class="btn"
-       href="{{ url_for('ai') }}">
+        <div class="feature-card">
 
-        Abrir Academy AI
+            <div class="feature-icon">
+                🛡️
+            </div>
 
-    </a>
+            <h3>
+                Desarrollo seguro
+            </h3>
 
-</section>
+            <p>
+                Aprende validación del servidor,
+                seguridad y protección contra exploits.
+            </p>
 
+        </div>
 
-
-<section class="section about">
-
-    <span class="section-label">
-        SOBRE ACADEMY
-    </span>
-
-    <h2>
-        Aprende. Crea. Programa.
-    </h2>
-
-    <p>
-        Academy Blox Script es una plataforma educativa
-        centrada en Roblox Studio, scripting y creación
-        de experiencias.
-    </p>
-
-</section>
-
+    </section>
 
 </main>
 
 
+<footer class="footer">
 
-<footer>
+    <div class="footer-content">
 
-    <div class="logo">
-        🔥 Academy Blox Script
+        <div>
+
+            <h3>
+                🔥 Academy Blox Script
+            </h3>
+
+            <p>
+                Aprende. Programa. Crea.
+            </p>
+
+        </div>
+
+
+        <div class="footer-links">
+
+            <a href="{{ url_for('index') }}">
+                Inicio
+            </a>
+
+            <a href="{{ url_for('lessons') }}">
+                Lecciones
+            </a>
+
+            <a href="{{ url_for('scripts') }}">
+                Scripts
+            </a>
+
+            <a href="{{ url_for('ai') }}">
+                Academy AI
+            </a>
+
+        </div>
+
     </div>
 
-    <p>
-        © 2026 Academy Blox Script
-    </p>
+
+    <div class="footer-bottom">
+
+        <p>
+            © 2026 Academy Blox Script
+        </p>
+
+        <p>
+            Plataforma educativa independiente para Roblox Studio.
+        </p>
+
+    </div>
 
 </footer>
 
 
+<script>
 
-<script src="{{ url_for('static', filename='script.js') }}"></script>
+function copyScript(button) {
+
+    const card = button.closest(".script-card");
+
+    if (!card) {
+        return;
+    }
+
+    const codeElement = card.querySelector("code");
+
+    if (!codeElement) {
+        return;
+    }
+
+    const code = codeElement.innerText;
+
+    navigator.clipboard.writeText(code)
+        .then(() => {
+
+            const originalText = button.innerText;
+
+            button.innerText = "✓ Copiado";
+
+            setTimeout(() => {
+
+                button.innerText = originalText;
+
+            }, 1500);
+
+        })
+        .catch(() => {
+
+            const textarea = document.createElement("textarea");
+
+            textarea.value = code;
+
+            document.body.appendChild(textarea);
+
+            textarea.select();
+
+            document.execCommand("copy");
+
+            textarea.remove();
+
+            const originalText = button.innerText;
+
+            button.innerText = "✓ Copiado";
+
+            setTimeout(() => {
+
+                button.innerText = originalText;
+
+            }, 1500);
+
+        });
+
+}
+
+</script>
 
 </body>
-
 </html>
