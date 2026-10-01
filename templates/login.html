@@ -1,34 +1,117 @@
 <!DOCTYPE html>
-<html>
+<html lang="es">
+
 <head>
-<title>Login</title>
+
+    <meta charset="UTF-8">
+
+    <meta name="viewport"
+          content="width=device-width, initial-scale=1.0">
+
+    <title>Iniciar sesión | Academy Blox Script</title>
+
+    <link rel="stylesheet"
+          href="{{ url_for('static', filename='style.css') }}">
+
 </head>
+
 
 <body>
 
-<h1>Academy Blox Script</h1>
 
-<form method="POST">
+<header class="navbar">
 
-<input name="email" placeholder="Correo">
+    <a class="logo"
+       href="{{ url_for('index') }}">
+        🔥 Academy Blox Script
+    </a>
 
-<br>
-
-<input name="password" type="password" placeholder="Contraseña">
-
-<br>
-
-<button>
-Entrar
-</button>
-
-</form>
+</header>
 
 
-<a href="/register">
-Crear cuenta
-</a>
+
+<main class="auth-page">
+
+    <div class="auth-card">
+
+        <span class="section-label">
+            ACADEMY ACCOUNT
+        </span>
+
+
+        <h1>
+            Iniciar sesión
+        </h1>
+
+
+        <p>
+            Entra a tu cuenta para acceder
+            a la academia.
+        </p>
+
+
+        {% with messages = get_flashed_messages() %}
+
+            {% for message in messages %}
+
+                <div class="message">
+                    {{ message }}
+                </div>
+
+            {% endfor %}
+
+        {% endwith %}
+
+
+        <form method="POST">
+
+            <label>
+                Usuario o correo
+            </label>
+
+            <input
+                type="text"
+                name="username"
+                required
+                autocomplete="username"
+            >
+
+
+            <label>
+                Contraseña
+            </label>
+
+            <input
+                type="password"
+                name="password"
+                required
+                autocomplete="current-password"
+            >
+
+
+            <button type="submit"
+                    class="btn full">
+                Iniciar sesión
+            </button>
+
+        </form>
+
+
+        <p class="auth-footer">
+
+            ¿No tienes cuenta?
+
+            <a href="{{ url_for('register') }}">
+                Crear cuenta
+            </a>
+
+        </p>
+
+    </div>
+
+</main>
 
 
 </body>
+
 </html>
