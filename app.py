@@ -41,6 +41,9 @@ app.config["SESSION_COOKIE_SECURE"] = (
     os.getenv("SESSION_COOKIE_SECURE", "0") == "1"
 )
 
+# Límite diario de preguntas a la IA
+AI_DAILY_LIMIT = int(os.getenv("AI_DAILY_LIMIT", "10"))
+
 
 # =========================================================
 # BASE DE DATOS
@@ -130,13 +133,23 @@ def init_db():
         )
     """)
 
+    db.execute("""
+        CREATE TABLE IF NOT EXISTS ai_usage (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            user_id INTEGER NOT NULL,
+            date TEXT NOT NULL,
+            count INTEGER DEFAULT 0,
+            UNIQUE(user_id, date)
+        )
+    """)
+
     db.commit()
     seed_lessons()
     seed_scripts()
 
 
 # =========================================================
-# LECCIONES SEED
+# LECCIONES SEED (24 lecciones)
 # =========================================================
 
 def seed_lessons():
@@ -150,16 +163,16 @@ def seed_lessons():
          "Roblox Studio es el programa que utilizamos para crear experiencias en Roblox.\n\nEn esta lección aprenderás a reconocer el Explorer, Properties, Workspace, Parts y las herramientas básicas.",
          "", "Roblox Studio"),
         ("Crear tu primer proyecto", "Aprende a crear un proyecto nuevo desde cero.",
-         "Para comenzar un juego debes crear un proyecto nuevo.\n\nPuedes utilizar una plantilla como Baseplate para comenzar con un espacio vacío.",
+         "Para comenzar un juego debes crear un proyecto nuevo.\n\nPuedes utilizar una plantilla como Baseplate para comenzar con un espacio vacío y construir tu experiencia.",
          "", "Roblox Studio"),
         ("Parts y construcción", "Aprende a crear y modificar Parts.",
-         "Las Parts son uno de los elementos fundamentales de Roblox.\n\nPuedes cambiar su posición, tamaño, orientación, material y color.",
+         "Las Parts son uno de los elementos fundamentales de Roblox.\n\nPuedes cambiar su posición, tamaño, orientación, material y color desde las propiedades.",
          "", "Construcción"),
         ("Materiales y colores", "Aprende a cambiar el aspecto de tus objetos.",
          "Roblox permite utilizar diferentes materiales y colores.\n\nLos materiales ayudan a que las construcciones tengan una apariencia diferente.",
          "", "Construcción"),
         ("Modelos y organización profesional", "Aprende a organizar correctamente tu proyecto.",
-         "Un proyecto bien organizado es mucho más fácil de editar.\n\nUtiliza carpetas, modelos y nombres claros.",
+         "Un proyecto bien organizado es mucho más fácil de editar.\n\nUtiliza carpetas, modelos y nombres claros para mantener el Explorer ordenado.",
          "", "Construcción"),
         ("Terrain", "Aprende los conceptos básicos del Terrain Editor.",
          "El Terrain Editor permite crear montañas, agua, cuevas y diferentes tipos de terreno.\n\nEs especialmente útil para mapas grandes.",
@@ -602,21 +615,92 @@ def ai():
     return render_template("ai.html")
 
 
+def get_ai_usage_today(user_id):
+    db = get_db()
+    today = datetime.utcnow().strftime("%Y-%m-%d")
+
+    row = db.execute("""
+        SELECT count FROM ai_usage
+        WHERE user_id = ? AND date = ?
+    """, (user_id, today)).fetchone()
+
+    if row is None:
+        return 0
+    return row["count"]
+
+
+def increment_ai_usage(user_id):
+    db = get_db()
+    today = datetime.utcnow().strftime("%Y-%m-%d")
+
+    row = db.execute("""
+        SELECT count FROM ai_usage
+        WHERE user_id = ? AND date = ?
+    """, (user_id, today)).fetchone()
+
+    if row is None:
+        db.execute("""
+            INSERT INTO ai_usage (user_id, date, count)
+            VALUES (?, ?, 1)
+        """, (user_id, today))
+    else:
+        db.execute("""
+            UPDATE ai_usage
+            SET count = count + 1
+            WHERE user_id = ? AND date = ?
+        """, (user_id, today))
+
+    db.commit()
+
+
+@app.route("/api/ai/restantes")
+@login_required
+def api_ai_restantes():
+    usadas = get_ai_usage_today(g.user["id"])
+    restantes = max(0, AI_DAILY_LIMIT - usadas)
+
+    return jsonify({
+        "ok": True,
+        "usadas": usadas,
+        "restantes": restantes,
+        "limite": AI_DAILY_LIMIT
+    })
+
+
 @app.route("/api/ai", methods=["POST"])
 @login_required
 def api_ai():
+    # Verificar límite diario
+    usadas = get_ai_usage_today(g.user["id"])
+
+    if usadas >= AI_DAILY_LIMIT:
+        return jsonify({
+            "ok": False,
+            "error": f"Has alcanzado el límite diario de {AI_DAILY_LIMIT} preguntas. Vuelve mañana."
+        }), 429
+
     if OpenAI is None:
-        return jsonify({"ok": False, "error": "La librería de OpenAI no está instalada."}), 500
+        return jsonify({
+            "ok": False,
+            "error": "La librería de OpenAI no está instalada."
+        }), 500
 
     api_key = os.getenv("OPENAI_API_KEY")
+
     if not api_key:
-        return jsonify({"ok": False, "error": "OPENAI_API_KEY no está configurada."}), 500
+        return jsonify({
+            "ok": False,
+            "error": "OPENAI_API_KEY no está configurada."
+        }), 500
 
     data = request.get_json(silent=True) or {}
     message = str(data.get("message", "")).strip()
 
     if not message:
-        return jsonify({"ok": False, "error": "Escribe una pregunta."}), 400
+        return jsonify({
+            "ok": False,
+            "error": "Escribe una pregunta."
+        }), 400
 
     try:
         client = OpenAI(api_key=api_key)
@@ -645,10 +729,22 @@ Tu objetivo es enseñar, no solamente entregar código."""},
         )
 
         output = response.choices[0].message.content
-        return jsonify({"ok": True, "answer": output})
+
+        increment_ai_usage(g.user["id"])
+
+        restantes = AI_DAILY_LIMIT - (usadas + 1)
+
+        return jsonify({
+            "ok": True,
+            "answer": output,
+            "restantes": restantes
+        })
 
     except Exception as e:
-        return jsonify({"ok": False, "error": str(e)}), 500
+        return jsonify({
+            "ok": False,
+            "error": str(e)
+        }), 500
 
 
 # =========================================================
