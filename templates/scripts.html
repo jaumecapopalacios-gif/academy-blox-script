@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta name="viewport"
+          content="width=device-width, initial-scale=1.0">
+
+    <title>Scripts | Academy Blox Script</title>
+
+    <link rel="stylesheet"
+          href="{{ url_for('static', filename='style.css') }}">
+
+</head>
+
+
+<body>
+
+
+<header class="navbar">
+
+    <a class="logo"
+       href="{{ url_for('index') }}">
+        🔥 Academy Blox Script
+    </a>
+
+
+    <nav>
+
+        <a href="{{ url_for('index') }}">
+            Inicio
+        </a>
+
+        <a href="{{ url_for('scripts') }}">
+            Scripts
+        </a>
+
+        {% if session.get("username") %}
+
+            <a href="{{ url_for('logout') }}">
+                Salir
+            </a>
+
+        {% else %}
+
+            <a href="{{ url_for('login') }}">
+                Login
+            </a>
+
+        {% endif %}
+
+    </nav>
+
+</header>
+
+
+
+<main class="section">
+
+    <div class="section-heading">
+
+        <div>
+
+            <span class="section-label">
+                SCRIPT LIBRARY
+            </span>
+
+            <h1>
+                Biblioteca de scripts
+            </h1>
+
+        </div>
+
+    </div>
+
+
+
+    <form class="search-box"
+          method="GET"
+          action="{{ url_for('scripts') }}">
+
+        <input
+            type="search"
+            name="search"
+            value="{{ search }}"
+            placeholder="Buscar scripts..."
+        >
+
+
+        <select name="category">
+
+            <option value="">
+                Todas las categorías
+            </option>
+
+
+            {% for category in categories %}
+
+            <option
+                value="{{ category.category }}"
+                {% if selected_category == category.category %}
+                    selected
+                {% endif %}
+            >
+
+                {{ category.category }}
+
+            </option>
+
+            {% endfor %}
+
+        </select>
+
+
+        <button class="btn"
+                type="submit">
+            Buscar
+        </button>
+
+    </form>
+
+
+
+    <div class="grid">
+
+
+        {% for script in scripts %}
+
+        <article class="script-card">
+
+            <span class="tag">
+                {{ script.category }}
+            </span>
+
+
+            <h2>
+                {{ script.title }}
+            </h2>
+
+
+            <p>
+                {{ script.description }}
+            </p>
+
+
+            <pre><code id="code-{{ script.id }}">{{ script.code }}</code></pre>
+
+
+            <div class="script-actions">
+
+                <button
+                    class="btn small copy-button"
+                    data-target="code-{{ script.id }}">
+
+                    Copiar script
+
+                </button>
+
+
+                {% if session.get("username") %}
+
+                    <a
+                        class="btn small secondary"
+                        href="{{ url_for('script_detail', id=script.id) }}">
+
+                        Abrir
+
+                    </a>
+
+                {% else %}
+
+                    <a
+                        class="btn small secondary"
+                        href="{{ url_for('login') }}">
+
+                        Iniciar sesión
+
+                    </a>
+
+                {% endif %}
+
+            </div>
+
+        </article>
+
+
+        {% else %}
+
+        <article class="empty-card">
+
+            <h2>
+                No encontramos scripts.
+            </h2>
+
+            <p>
+                Prueba otra búsqueda o categoría.
+            </p>
+
+        </article>
+
+        {% endfor %}
+
+    </div>
+
+</main>
+
+
+
+<script src="{{ url_for('static', filename='script.js') }}"></script>
+
+</body>
+
+</html>
