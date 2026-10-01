@@ -1,1148 +1,405 @@
-import os
-import sqlite3
-from functools import wraps
+<!DOCTYPE html>
+<html lang="es">
 
-from flask import (
-    Flask,
-    render_template,
-    request,
-    redirect,
-    url_for,
-    session,
-    flash,
-    jsonify
-)
+<head>
 
-from werkzeug.security import (
-    generate_password_hash,
-    check_password_hash
-)
+    <meta charset="UTF-8">
 
+    <meta name="viewport"
+          content="width=device-width, initial-scale=1.0">
 
-app = Flask(__name__)
+    <meta name="description"
+          content="Academy Blox Script - aprende Roblox Studio, Luau y programación.">
 
-app.secret_key = os.environ.get(
-    "SECRET_KEY",
-    "academy-blox-secret-key-change-this"
-)
+    <meta name="keywords"
+          content="Roblox, Roblox Studio, scripts, Luau, programación, Academy Blox Script">
 
-DATABASE = "academy.db"
+    <title>Academy Blox Script</title>
 
-ADMIN_CODE = os.environ.get(
-    "ADMIN_CODE",
-    "ACADEMY-2026"
-)
+    <link rel="stylesheet"
+          href="{{ url_for('static', filename='style.css') }}">
 
+</head>
 
-# =========================================================
-# BASE DE DATOS
-# =========================================================
 
-def get_db():
+<body>
 
-    db = sqlite3.connect(DATABASE)
 
-    db.row_factory = sqlite3.Row
+<header class="navbar">
 
-    return db
+    <a class="logo"
+       href="{{ url_for('index') }}">
 
+        🔥 Academy Blox Script
 
-def column_exists(db, table, column):
+    </a>
 
-    columns = db.execute(
-        f"PRAGMA table_info({table})"
-    ).fetchall()
 
-    return any(
-        row["name"] == column
-        for row in columns
-    )
+    <nav>
 
+        <a href="{{ url_for('index') }}">
+            Inicio
+        </a>
 
-def init_db():
+        <a href="{{ url_for('scripts') }}">
+            Scripts
+        </a>
 
-    db = get_db()
+        <a href="{{ url_for('ai') }}">
+            Academy AI
+        </a>
 
 
-    # -----------------------------------------------------
-    # USUARIOS
-    # -----------------------------------------------------
+        {% if session.get("username") %}
 
-    db.execute("""
-        CREATE TABLE IF NOT EXISTS users (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            username TEXT UNIQUE NOT NULL,
-            email TEXT UNIQUE NOT NULL,
-            password TEXT NOT NULL,
-            is_admin INTEGER DEFAULT 0,
-            is_blocked INTEGER DEFAULT 0,
-            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-        )
-    """)
+            <a href="{{ url_for('account') }}">
+                {{ session.get("username") }}
+            </a>
 
 
-    # Actualizar bases antiguas
+            {% if session.get("is_admin") %}
 
-    if not column_exists(db, "users", "is_admin"):
+                <a href="{{ url_for('admin') }}">
+                    Admin
+                </a>
 
-        db.execute(
-            "ALTER TABLE users ADD COLUMN is_admin INTEGER DEFAULT 0"
-        )
+            {% endif %}
 
 
-    if not column_exists(db, "users", "is_blocked"):
+            <a href="{{ url_for('logout') }}">
+                Salir
+            </a>
 
-        db.execute(
-            "ALTER TABLE users ADD COLUMN is_blocked INTEGER DEFAULT 0"
-        )
+        {% else %}
 
+            <a href="{{ url_for('login') }}">
+                Iniciar sesión
+            </a>
 
-    if not column_exists(db, "users", "created_at"):
+            <a class="nav-button"
+               href="{{ url_for('register') }}">
+                Crear cuenta
+            </a>
 
-        db.execute(
-            "ALTER TABLE users ADD COLUMN created_at TIMESTAMP"
-        )
+        {% endif %}
 
+    </nav>
 
-    # -----------------------------------------------------
-    # LECCIONES
-    # -----------------------------------------------------
+</header>
 
-    db.execute("""
-        CREATE TABLE IF NOT EXISTS lessons (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            title TEXT NOT NULL,
-            description TEXT,
-            content TEXT,
-            category TEXT DEFAULT 'Roblox Studio',
-            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-        )
-    """)
 
 
-    if not column_exists(db, "lessons", "category"):
+<main>
 
-        db.execute(
-            """
-            ALTER TABLE lessons
-            ADD COLUMN category TEXT DEFAULT 'Roblox Studio'
-            """
-        )
 
+<section class="hero">
 
-    # -----------------------------------------------------
-    # SCRIPTS
-    # -----------------------------------------------------
+    <div class="hero-content">
 
-    db.execute("""
-        CREATE TABLE IF NOT EXISTS scripts (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            title TEXT NOT NULL,
-            description TEXT,
-            code TEXT NOT NULL,
-            category TEXT DEFAULT 'General',
-            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-        )
-    """)
+        <span class="hero-label">
+            ACADEMY ONLINE
+        </span>
 
 
-    # -----------------------------------------------------
+        <h1>
+            ACADEMY
+            <span>BLOX SCRIPT</span>
+        </h1>
 
-    db.commit()
 
-    db.close()
+        <p>
+            Aprende a crear experiencias, scripts
+            y sistemas para Roblox Studio.
+        </p>
 
 
-# =========================================================
-# FUNCIONES DE USUARIO
-# =========================================================
+        <div class="hero-buttons">
 
-def login_required(function):
+            <a class="btn"
+               href="{{ url_for('scripts') }}">
+                Explorar scripts
+            </a>
 
-    @wraps(function)
-    def wrapper(*args, **kwargs):
 
-        if not session.get("user_id"):
+            {% if not session.get("username") %}
 
-            flash(
-                "Debes iniciar sesión para continuar."
-            )
+                <a class="btn secondary"
+                   href="{{ url_for('register') }}">
+                    Empezar ahora
+                </a>
 
-            return redirect(
-                url_for("login")
-            )
+            {% endif %}
 
+        </div>
 
-        db = get_db()
+    </div>
 
-        user = db.execute(
-            """
-            SELECT *
-            FROM users
-            WHERE id = ?
-            """,
-            (session["user_id"],)
-        ).fetchone()
+</section>
 
-        db.close()
 
 
-        if not user:
+{% if session.get("username") %}
 
-            session.clear()
+<section class="section">
 
-            flash(
-                "Tu sesión ya no es válida."
-            )
+    <div class="account-status">
 
-            return redirect(
-                url_for("login")
-            )
+        <div>
 
+            <span>
+                CUENTA ACTIVA
+            </span>
 
-        if user["is_blocked"]:
+            <h2>
+                {{ session.get("username") }}
+            </h2>
 
-            session.clear()
+            <p>
+                {{ session.get("email") }}
+            </p>
 
-            flash(
-                "Tu cuenta está bloqueada."
-            )
+        </div>
 
-            return redirect(
-                url_for("login")
-            )
 
+        <div class="status-dot"></div>
 
-        return function(*args, **kwargs)
+    </div>
 
+</section>
 
-    return wrapper
+{% endif %}
 
 
-def admin_required(function):
 
-    @wraps(function)
-    def wrapper(*args, **kwargs):
+<section class="section">
 
-        if not session.get("user_id"):
+    <div class="section-heading">
 
-            flash(
-                "Debes iniciar sesión."
-            )
+        <div>
 
-            return redirect(
-                url_for("login")
-            )
+            <span class="section-label">
+                BIBLIOTECA
+            </span>
 
+            <h2>
+                Scripts
+            </h2>
 
-        if not session.get("is_admin"):
+        </div>
 
-            flash(
-                "No tienes permisos de administrador."
-            )
 
-            return redirect(
-                url_for("index")
-            )
+        <a href="{{ url_for('scripts') }}">
+            Ver todos →
+        </a>
 
+    </div>
 
-        return function(*args, **kwargs)
 
 
-    return wrapper
+    <div class="grid">
 
+        {% for script in scripts %}
 
-# =========================================================
-# INICIO
-# =========================================================
+        <article class="script-card">
 
-@app.route("/")
-def index():
+            <span class="tag">
+                {{ script.category }}
+            </span>
 
-    db = get_db()
 
+            <h3>
+                {{ script.title }}
+            </h3>
 
-    scripts = db.execute(
-        """
-        SELECT *
-        FROM scripts
-        ORDER BY id DESC
-        LIMIT 6
-        """
-    ).fetchall()
 
+            <p>
+                {{ script.description }}
+            </p>
 
-    lessons = db.execute(
-        """
-        SELECT *
-        FROM lessons
-        ORDER BY id ASC
-        LIMIT 6
-        """
-    ).fetchall()
 
+            <a class="btn small"
+               href="{{ url_for('script_detail', id=script.id) }}">
 
-    db.close()
+                Ver script
 
+            </a>
 
-    return render_template(
-        "index.html",
-        scripts=scripts,
-        lessons=lessons
-    )
+        </article>
 
 
-# =========================================================
-# REGISTRO
-# =========================================================
+        {% else %}
 
-@app.route(
-    "/register",
-    methods=["GET", "POST"]
-)
-def register():
+        <article class="empty-card">
 
-    if request.method == "POST":
+            <h3>
+                Todavía no hay scripts
+            </h3>
 
-        username = request.form.get(
-            "username",
-            ""
-        ).strip()
+            <p>
+                El administrador puede añadir el primero
+                desde el panel.
+            </p>
 
+        </article>
 
-        email = request.form.get(
-            "email",
-            ""
-        ).strip().lower()
+        {% endfor %}
 
+    </div>
 
-        password = request.form.get(
-            "password",
-            ""
-        )
+</section>
 
 
-        if len(username) < 3:
 
-            flash(
-                "El usuario debe tener al menos 3 caracteres."
-            )
+<section class="section">
 
-            return render_template(
-                "register.html"
-            )
+    <div class="section-heading">
 
+        <div>
 
-        if len(password) < 6:
+            <span class="section-label">
+                APRENDIZAJE
+            </span>
 
-            flash(
-                "La contraseña debe tener al menos 6 caracteres."
-            )
+            <h2>
+                Lecciones
+            </h2>
 
-            return render_template(
-                "register.html"
-            )
+        </div>
 
+    </div>
 
-        db = get_db()
 
+    <div class="grid">
 
-        existing = db.execute(
-            """
-            SELECT id
-            FROM users
-            WHERE username = ?
-               OR email = ?
-            """,
-            (
-                username,
-                email
-            )
-        ).fetchone()
+        {% for lesson in lessons %}
 
+        <article class="lesson-card">
 
-        if existing:
+            <span class="lesson-number">
+                LECCIÓN {{ lesson.id }}
+            </span>
 
-            db.close()
 
-            flash(
-                "El usuario o correo ya está registrado."
-            )
+            <h3>
+                {{ lesson.title }}
+            </h3>
 
-            return render_template(
-                "register.html"
-            )
 
+            <p>
+                {{ lesson.description }}
+            </p>
 
-        password_hash = generate_password_hash(
-            password
-        )
 
+            {% if session.get("username") %}
 
-        db.execute(
-            """
-            INSERT INTO users
-            (
-                username,
-                email,
-                password,
-                is_admin,
-                is_blocked
-            )
-            VALUES (?, ?, ?, 0, 0)
-            """,
-            (
-                username,
-                email,
-                password_hash
-            )
-        )
+                <a class="btn small"
+                   href="{{ url_for('lesson', id=lesson.id) }}">
+                    Estudiar
+                </a>
 
+            {% else %}
 
-        db.commit()
+                <a class="btn small"
+                   href="{{ url_for('login') }}">
+                    Iniciar sesión
+                </a>
 
-        db.close()
+            {% endif %}
 
+        </article>
 
-        flash(
-            "Cuenta creada correctamente. Ya puedes iniciar sesión."
-        )
+        {% else %}
 
+        <article class="empty-card">
 
-        return redirect(
-            url_for("login")
-        )
+            <h3>
+                Próximamente
+            </h3>
 
+            <p>
+                Las primeras lecciones aparecerán aquí.
+            </p>
 
-    return render_template(
-        "register.html"
-    )
+        </article>
 
+        {% endfor %}
 
-# =========================================================
-# LOGIN
-# =========================================================
+    </div>
 
-@app.route(
-    "/login",
-    methods=["GET", "POST"]
-)
-def login():
+</section>
 
-    if request.method == "POST":
 
-        username = request.form.get(
-            "username",
-            ""
-        ).strip()
 
+<section class="section ai-banner">
 
-        password = request.form.get(
-            "password",
-            ""
-        )
+    <div>
 
+        <span class="section-label">
+            INTELIGENCIA ARTIFICIAL
+        </span>
 
-        db = get_db()
+        <h2>
+            Academy AI
+        </h2>
 
+        <p>
+            Resuelve dudas sobre Roblox Studio,
+            Luau y programación.
+        </p>
 
-        user = db.execute(
-            """
-            SELECT *
-            FROM users
-            WHERE username = ?
-               OR email = ?
-            """,
-            (
-                username,
-                username.lower()
-            )
-        ).fetchone()
+    </div>
 
 
-        db.close()
+    <a class="btn"
+       href="{{ url_for('ai') }}">
 
+        Abrir Academy AI
 
-        if not user:
+    </a>
 
-            flash(
-                "Usuario, correo o contraseña incorrectos."
-            )
+</section>
 
-            return render_template(
-                "login.html"
-            )
 
 
-        if user["is_blocked"]:
+<section class="section about">
 
-            flash(
-                "Esta cuenta está bloqueada."
-            )
+    <span class="section-label">
+        SOBRE ACADEMY
+    </span>
 
-            return render_template(
-                "login.html"
-            )
+    <h2>
+        Aprende. Crea. Programa.
+    </h2>
 
+    <p>
+        Academy Blox Script es una plataforma educativa
+        centrada en Roblox Studio, scripting y creación
+        de experiencias.
+    </p>
 
-        if not check_password_hash(
-            user["password"],
-            password
-        ):
+</section>
 
-            flash(
-                "Usuario, correo o contraseña incorrectos."
-            )
 
-            return render_template(
-                "login.html"
-            )
+</main>
 
 
-        session.clear()
 
+<footer>
 
-        session["user_id"] = user["id"]
+    <div class="logo">
+        🔥 Academy Blox Script
+    </div>
 
-        session["username"] = user["username"]
+    <p>
+        © 2026 Academy Blox Script
+    </p>
 
-        session["email"] = user["email"]
+</footer>
 
-        session["is_admin"] = bool(
-            user["is_admin"]
-        )
 
 
-        return redirect(
-            url_for("index")
-        )
+<script src="{{ url_for('static', filename='script.js') }}"></script>
 
+</body>
 
-    return render_template(
-        "login.html"
-    )
-
-
-# =========================================================
-# LOGOUT
-# =========================================================
-
-@app.route("/logout")
-def logout():
-
-    session.clear()
-
-    flash(
-        "Sesión cerrada."
-    )
-
-    return redirect(
-        url_for("index")
-    )
-
-
-# =========================================================
-# CUENTA
-# =========================================================
-
-@app.route("/account")
-@login_required
-def account():
-
-    db = get_db()
-
-
-    user = db.execute(
-        """
-        SELECT *
-        FROM users
-        WHERE id = ?
-        """,
-        (session["user_id"],)
-    ).fetchone()
-
-
-    db.close()
-
-
-    return render_template(
-        "index.html",
-        scripts=[],
-        lessons=[],
-        account=user
-    )
-
-
-# =========================================================
-# SCRIPTS
-# =========================================================
-
-@app.route("/scripts")
-def scripts():
-
-    search = request.args.get(
-        "search",
-        ""
-    ).strip()
-
-
-    category = request.args.get(
-        "category",
-        ""
-    ).strip()
-
-
-    db = get_db()
-
-
-    query = """
-        SELECT *
-        FROM scripts
-        WHERE 1 = 1
-    """
-
-
-    params = []
-
-
-    if search:
-
-        query += """
-            AND (
-                title LIKE ?
-                OR description LIKE ?
-                OR code LIKE ?
-            )
-        """
-
-        search_value = f"%{search}%"
-
-        params.extend([
-            search_value,
-            search_value,
-            search_value
-        ])
-
-
-    if category:
-
-        query += """
-            AND category = ?
-        """
-
-        params.append(category)
-
-
-    query += """
-        ORDER BY id DESC
-    """
-
-
-    scripts_list = db.execute(
-        query,
-        params
-    ).fetchall()
-
-
-    categories = db.execute(
-        """
-        SELECT DISTINCT category
-        FROM scripts
-        ORDER BY category
-        """
-    ).fetchall()
-
-
-    db.close()
-
-
-    return render_template(
-        "scripts.html",
-        scripts=scripts_list,
-        categories=categories,
-        search=search,
-        selected_category=category
-    )
-
-
-# =========================================================
-# SCRIPT INDIVIDUAL
-# =========================================================
-
-@app.route("/script/<int:id>")
-@login_required
-def script_detail(id):
-
-    db = get_db()
-
-
-    script = db.execute(
-        """
-        SELECT *
-        FROM scripts
-        WHERE id = ?
-        """,
-        (id,)
-    ).fetchone()
-
-
-    db.close()
-
-
-    if not script:
-
-        return "Script no encontrado.", 404
-
-
-    return render_template(
-        "scripts.html",
-        scripts=[script],
-        categories=[],
-        search="",
-        selected_category=""
-    )
-
-
-# =========================================================
-# LECCIONES
-# =========================================================
-
-@app.route("/lesson/<int:id>")
-@login_required
-def lesson(id):
-
-    db = get_db()
-
-
-    lesson_data = db.execute(
-        """
-        SELECT *
-        FROM lessons
-        WHERE id = ?
-        """,
-        (id,)
-    ).fetchone()
-
-
-    db.close()
-
-
-    if not lesson_data:
-
-        return "Lección no encontrada.", 404
-
-
-    return render_template(
-        "lesson.html",
-        lesson=lesson_data
-    )
-
-
-# =========================================================
-# ACTIVAR ADMIN
-# =========================================================
-
-@app.route(
-    "/admin-code",
-    methods=["GET", "POST"]
-)
-@login_required
-def admin_code():
-
-    if session.get("is_admin"):
-
-        return redirect(
-            url_for("admin")
-        )
-
-
-    if request.method == "POST":
-
-        code = request.form.get(
-            "code",
-            ""
-        ).strip()
-
-
-        if code != ADMIN_CODE:
-
-            flash(
-                "Código de administrador incorrecto."
-            )
-
-            return render_template(
-                "admin_code.html"
-            )
-
-
-        db = get_db()
-
-
-        db.execute(
-            """
-            UPDATE users
-            SET is_admin = 1
-            WHERE id = ?
-            """,
-            (session["user_id"],)
-        )
-
-
-        db.commit()
-
-        db.close()
-
-
-        session["is_admin"] = True
-
-
-        flash(
-            "Administrador activado correctamente."
-        )
-
-
-        return redirect(
-            url_for("admin")
-        )
-
-
-    return render_template(
-        "admin_code.html"
-    )
-
-
-# =========================================================
-# ADMIN
-# =========================================================
-
-@app.route(
-    "/admin",
-    methods=["GET", "POST"]
-)
-@admin_required
-def admin():
-
-    db = get_db()
-
-
-    if request.method == "POST":
-
-        action = request.form.get(
-            "action",
-            ""
-        )
-
-
-        # -------------------------------------------------
-        # CREAR LECCIÓN
-        # -------------------------------------------------
-
-        if action == "create_lesson":
-
-            title = request.form.get(
-                "title",
-                ""
-            ).strip()
-
-
-            description = request.form.get(
-                "description",
-                ""
-            ).strip()
-
-
-            content = request.form.get(
-                "content",
-                ""
-            ).strip()
-
-
-            category = request.form.get(
-                "category",
-                "Roblox Studio"
-            ).strip()
-
-
-            if title:
-
-                db.execute(
-                    """
-                    INSERT INTO lessons
-                    (
-                        title,
-                        description,
-                        content,
-                        category
-                    )
-                    VALUES (?, ?, ?, ?)
-                    """,
-                    (
-                        title,
-                        description,
-                        content,
-                        category
-                    )
-                )
-
-
-                db.commit()
-
-
-                flash(
-                    "Lección creada correctamente."
-                )
-
-
-        # -------------------------------------------------
-        # CREAR SCRIPT
-        # -------------------------------------------------
-
-        elif action == "create_script":
-
-            title = request.form.get(
-                "script_title",
-                ""
-            ).strip()
-
-
-            description = request.form.get(
-                "script_description",
-                ""
-            ).strip()
-
-
-            code = request.form.get(
-                "code",
-                ""
-            )
-
-
-            category = request.form.get(
-                "script_category",
-                "General"
-            ).strip()
-
-
-            if title and code:
-
-                db.execute(
-                    """
-                    INSERT INTO scripts
-                    (
-                        title,
-                        description,
-                        code,
-                        category
-                    )
-                    VALUES (?, ?, ?, ?)
-                    """,
-                    (
-                        title,
-                        description,
-                        code,
-                        category
-                    )
-                )
-
-
-                db.commit()
-
-
-                flash(
-                    "Script añadido correctamente."
-                )
-
-
-        # -------------------------------------------------
-        # BLOQUEAR / DESBLOQUEAR
-        # -------------------------------------------------
-
-        elif action == "toggle_user":
-
-            user_id = request.form.get(
-                "user_id"
-            )
-
-
-            if user_id:
-
-                db.execute(
-                    """
-                    UPDATE users
-                    SET is_blocked =
-                        CASE
-                            WHEN is_blocked = 1
-                            THEN 0
-                            ELSE 1
-                        END
-                    WHERE id = ?
-                    AND id != ?
-                    """,
-                    (
-                        user_id,
-                        session["user_id"]
-                    )
-                )
-
-
-                db.commit()
-
-
-                flash(
-                    "Estado de la cuenta actualizado."
-                )
-
-
-    lessons = db.execute(
-        """
-        SELECT *
-        FROM lessons
-        ORDER BY id DESC
-        """
-    ).fetchall()
-
-
-    scripts_list = db.execute(
-        """
-        SELECT *
-        FROM scripts
-        ORDER BY id DESC
-        """
-    ).fetchall()
-
-
-    users = db.execute(
-        """
-        SELECT id, username, email, is_admin,
-               is_blocked, created_at
-        FROM users
-        ORDER BY id DESC
-        """
-    ).fetchall()
-
-
-    db.close()
-
-
-    return render_template(
-        "admin.html",
-        lessons=lessons,
-        scripts=scripts_list,
-        users=users
-    )
-
-
-# =========================================================
-# ACADEMY AI
-# =========================================================
-
-@app.route(
-    "/ai",
-    methods=["GET", "POST"]
-)
-@login_required
-def ai():
-
-    response = None
-
-    question = ""
-
-
-    if request.method == "POST":
-
-        question = request.form.get(
-            "message",
-            ""
-        ).strip()
-
-
-        if question:
-
-            # Respuestas básicas mientras no se
-            # conecte una API externa.
-
-            lower = question.lower()
-
-
-            if "roblox studio" in lower:
-
-                response = (
-                    "Roblox Studio es el programa utilizado "
-                    "para crear experiencias de Roblox. "
-                    "Puedes programar con Luau, construir "
-                    "mapas y crear sistemas para tu juego."
-                )
-
-
-            elif "script" in lower:
-
-                response = (
-                    "Los scripts de Roblox se programan "
-                    "principalmente con Luau. "
-                    "Un Script normalmente se utiliza para "
-                    "la lógica del servidor y un LocalScript "
-                    "para lógica que necesita ejecutarse "
-                    "en el cliente."
-                )
-
-
-            elif "lua" in lower or "luau" in lower:
-
-                response = (
-                    "Luau es el lenguaje basado en Lua "
-                    "que utiliza Roblox. Puedes empezar "
-                    "aprendiendo variables, funciones, "
-                    "condicionales, bucles y eventos."
-                )
-
-
-            else:
-
-                response = (
-                    "Academy AI recibió tu pregunta. "
-                    "Para preguntas específicas de Roblox, "
-                    "incluye el código o explica qué quieres "
-                    "que haga el script."
-                )
-
-
-    return render_template(
-        "ai.html",
-        response=response,
-        question=question
-    )
-
-
-# =========================================================
-# API PARA COMPROBAR SESIÓN
-# =========================================================
-
-@app.route("/api/session")
-def api_session():
-
-    return jsonify({
-        "logged_in": bool(
-            session.get("user_id")
-        ),
-        "username": session.get("username"),
-        "email": session.get("email"),
-        "is_admin": bool(
-            session.get("is_admin")
-        )
-    })
-
-
-# =========================================================
-# INICIAR
-# =========================================================
-
-init_db()
-
-
-if __name__ == "__main__":
-
-    app.run(
-        host="0.0.0.0",
-        port=5000,
-        debug=True
-    )
+</html>
