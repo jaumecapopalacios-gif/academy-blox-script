@@ -1,51 +1,127 @@
 <!DOCTYPE html>
 <html lang="es">
+
 <head>
+
     <meta charset="UTF-8">
-    <title>Crear cuenta - Academy Blox Script</title>
-    <link rel="stylesheet" href="/static/style.css">
+
+    <meta name="viewport"
+          content="width=device-width, initial-scale=1.0">
+
+    <title>Crear cuenta | Academy Blox Script</title>
+
+    <link rel="stylesheet"
+          href="{{ url_for('static', filename='style.css') }}">
+
 </head>
+
 
 <body>
 
-<div class="container">
 
-    <h1>🔥 Crear cuenta</h1>
+<header class="navbar">
 
-    <form method="POST">
+    <a class="logo"
+       href="{{ url_for('index') }}">
+        🔥 Academy Blox Script
+    </a>
 
-        <input 
-        type="text" 
-        name="username" 
-        placeholder="Usuario"
-        required>
+</header>
 
-        <input 
-        type="email" 
-        name="email" 
-        placeholder="Correo"
-        required>
 
-        <input 
-        type="password" 
-        name="password" 
-        placeholder="Contraseña"
-        required>
 
-        <button type="submit">
-            Registrarme
-        </button>
+<main class="auth-page">
 
-    </form>
+    <div class="auth-card">
 
-    <p>
-        ¿Ya tienes cuenta?
-        <a href="/login">
-            Iniciar sesión
-        </a>
-    </p>
+        <span class="section-label">
+            ACADEMY ACCOUNT
+        </span>
 
-</div>
+
+        <h1>
+            Crear cuenta
+        </h1>
+
+
+        <p>
+            Crea tu cuenta gratuita.
+        </p>
+
+
+        {% with messages = get_flashed_messages() %}
+
+            {% for message in messages %}
+
+                <div class="message">
+                    {{ message }}
+                </div>
+
+            {% endfor %}
+
+        {% endwith %}
+
+
+        <form method="POST">
+
+            <label>
+                Usuario
+            </label>
+
+            <input
+                type="text"
+                name="username"
+                minlength="3"
+                required
+            >
+
+
+            <label>
+                Correo electrónico
+            </label>
+
+            <input
+                type="email"
+                name="email"
+                required
+            >
+
+
+            <label>
+                Contraseña
+            </label>
+
+            <input
+                type="password"
+                name="password"
+                minlength="6"
+                required
+            >
+
+
+            <button type="submit"
+                    class="btn full">
+                Crear cuenta
+            </button>
+
+        </form>
+
+
+        <p class="auth-footer">
+
+            ¿Ya tienes cuenta?
+
+            <a href="{{ url_for('login') }}">
+                Iniciar sesión
+            </a>
+
+        </p>
+
+    </div>
+
+</main>
+
 
 </body>
+
 </html>
