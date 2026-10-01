@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta name="viewport"
+          content="width=device-width, initial-scale=1.0">
+
+    <title>Activar administrador</title>
+
+    <link rel="stylesheet"
+          href="{{ url_for('static', filename='style.css') }}">
+
+</head>
+
+
+<body>
+
+
+<main class="auth-page">
+
+    <div class="auth-card">
+
+        <span class="section-label">
+            ADMIN ACCESS
+        </span>
+
+
+        <h1>
+            Activar administrador
+        </h1>
+
+
+        <p>
+            Introduce el código de administrador
+            para activar los permisos.
+        </p>
+
+
+        {% with messages = get_flashed_messages() %}
+
+            {% for message in messages %}
+
+                <div class="message">
+                    {{ message }}
+                </div>
+
+            {% endfor %}
+
+        {% endwith %}
+
+
+        <form method="POST">
+
+            <input
+                type="password"
+                name="code"
+                placeholder="Código de administrador"
+                required
+            >
+
+
+            <button
+                class="btn full"
+                type="submit">
+
+                Activar administrador
+
+            </button>
+
+        </form>
+
+
+        <a href="{{ url_for('index') }}">
+            Volver al inicio
+        </a>
+
+    </div>
+
+</main>
+
+
+</body>
+
+</html>
