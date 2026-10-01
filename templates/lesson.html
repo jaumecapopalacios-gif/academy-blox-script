@@ -1,92 +1,123 @@
 <!DOCTYPE html>
 <html lang="es">
-
 <head>
-
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-    <meta name="viewport"
-          content="width=device-width, initial-scale=1.0">
+    <title>Lecciones | Academy Blox Script</title>
 
-    <title>{{ lesson.title }} | Academy Blox Script</title>
-
-    <link rel="stylesheet"
-          href="{{ url_for('static', filename='style.css') }}">
-
+    <link
+        rel="stylesheet"
+        href="{{ url_for('static', filename='style.css') }}"
+    >
 </head>
-
 
 <body>
 
-
 <header class="navbar">
 
-    <a class="logo"
-       href="{{ url_for('index') }}">
+    <div class="logo">
         🔥 Academy Blox Script
-    </a>
-
+    </div>
 
     <nav>
+        <a href="{{ url_for('index') }}">Inicio</a>
+        <a href="{{ url_for('lessons') }}">Lecciones</a>
+        <a href="{{ url_for('scripts') }}">Scripts</a>
+        <a href="{{ url_for('ai') }}">Academy AI</a>
 
-        <a href="{{ url_for('index') }}">
-            Inicio
+        {% if user and user["is_admin"] %}
+            <a href="{{ url_for('admin') }}">
+                Administrador
+            </a>
+        {% endif %}
+
+        <a href="{{ url_for('logout') }}">
+            Cerrar sesión
         </a>
-
-        <a href="{{ url_for('scripts') }}">
-            Scripts
-        </a>
-
     </nav>
 
 </header>
 
 
+<main class="page-container">
 
-<main class="section">
+    <section class="page-header">
 
-
-    <article class="lesson-page">
-
-        <span class="lesson-number">
-            LECCIÓN {{ lesson.id }}
+        <span class="badge">
+            CURSO COMPLETO
         </span>
-
-
-        <span class="tag">
-            {{ lesson.category }}
-        </span>
-
 
         <h1>
-            {{ lesson.title }}
+            Aprende Roblox Studio
         </h1>
 
-
-        <p class="lesson-description">
-            {{ lesson.description }}
+        <p>
+            24 lecciones para aprender desde cero
+            hasta crear sistemas avanzados.
         </p>
 
-
-        <div class="lesson-content">
-
-            {{ lesson.content | safe }}
-
-        </div>
+    </section>
 
 
-        <a class="btn"
-           href="{{ url_for('index') }}">
+    <section class="lessons-grid">
 
-            ← Volver
+        {% for lesson in lessons %}
 
-        </a>
+        <article class="lesson-card">
 
-    </article>
+            <div class="lesson-number">
+                {{ "%02d"|format(lesson["id"]) }}
+            </div>
 
+            <div class="lesson-content">
+
+                <span class="lesson-category">
+                    {{ lesson["category"] }}
+                </span>
+
+                <h2>
+                    {{ lesson["title"] }}
+                </h2>
+
+                <p>
+                    {{ lesson["description"] }}
+                </p>
+
+                <a
+                    class="btn-primary"
+                    href="{{ url_for('lesson', lesson_id=lesson['id']) }}"
+                >
+                    Estudiar lección →
+                </a>
+
+            </div>
+
+        </article>
+
+        {% endfor %}
+
+    </section>
 
 </main>
 
-</body>
 
+<footer class="footer">
+
+    <p>
+        © 2026 Academy Blox Script
+    </p>
+
+    <p>
+        Aprende Roblox Studio. Crea. Programa. Mejora.
+    </p>
+
+</footer>
+
+
+<script
+    src="{{ url_for('static', filename='script.js') }}"
+></script>
+
+</body>
 </html>
