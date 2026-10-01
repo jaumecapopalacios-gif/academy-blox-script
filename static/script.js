@@ -1,96 +1,141 @@
 document.addEventListener("DOMContentLoaded", function () {
 
+    /*
+     * COPIAR SCRIPTS
+     */
 
-    // Animación de entrada de tarjetas
-
-    const cards = document.querySelectorAll(
-        ".lesson-card, .admin-card, .ai-card"
-    );
-
-
-    cards.forEach((card, index) => {
-
-        card.style.opacity = "0";
-
-        card.style.transform = "translateY(30px)";
+    const copyButtons =
+        document.querySelectorAll(".copy-button");
 
 
-        setTimeout(() => {
+    copyButtons.forEach(function (button) {
 
-            card.style.transition = "0.5s ease";
+        button.addEventListener(
+            "click",
+            async function () {
 
-            card.style.opacity = "1";
+                const targetId =
+                    button.dataset.target;
 
-            card.style.transform = "translateY(0)";
+                const codeElement =
+                    document.getElementById(targetId);
 
 
-        }, index * 150);
+                if (!codeElement) {
+                    return;
+                }
 
+
+                const code =
+                    codeElement.innerText;
+
+
+                try {
+
+                    await navigator.clipboard.writeText(
+                        code
+                    );
+
+
+                    const originalText =
+                        button.innerText;
+
+
+                    button.innerText =
+                        "✓ Copiado";
+
+
+                    setTimeout(
+                        function () {
+
+                            button.innerText =
+                                originalText;
+
+                        },
+                        1500
+                    );
+
+
+                } catch (error) {
+
+                    alert(
+                        "No se pudo copiar el script."
+                    );
+
+                }
+
+            }
+        );
 
     });
 
 
 
-    // Confirmación antes de salir
+    /*
+     * ANIMACIONES
+     */
 
-    const logoutLinks = document.querySelectorAll(
-        'a[href*="logout"]'
-    );
+    const cards =
+        document.querySelectorAll(
+            ".script-card, .lesson-card, .empty-card"
+        );
 
 
-    logoutLinks.forEach(link => {
+    cards.forEach(function (card, index) {
 
+        card.style.opacity = "0";
+
+        card.style.transform =
+            "translateY(15px)";
+
+
+        setTimeout(function () {
+
+            card.style.transition =
+                "opacity .4s ease, transform .4s ease";
+
+            card.style.opacity = "1";
+
+            card.style.transform =
+                "translateY(0)";
+
+        }, index * 60);
+
+    });
+
+
+
+    /*
+     * CONFIRMAR LOGOUT
+     */
+
+    const logoutLinks =
+        document.querySelectorAll(
+            'a[href*="/logout"]'
+        );
+
+
+    logoutLinks.forEach(function (link) {
 
         link.addEventListener(
             "click",
-            function(event) {
+            function (event) {
+
+                const confirmed =
+                    confirm(
+                        "¿Quieres cerrar sesión?"
+                    );
 
 
-                let confirmLogout = confirm(
-                    "¿Seguro que quieres cerrar sesión?"
-                );
-
-
-                if (!confirmLogout) {
+                if (!confirmed) {
 
                     event.preventDefault();
 
                 }
 
-
             }
         );
 
-
     });
-
-
-
-    // Efecto al escribir en textos largos
-
-    const textareas = document.querySelectorAll(
-        "textarea"
-    );
-
-
-    textareas.forEach(textarea => {
-
-
-        textarea.addEventListener(
-            "input",
-            function() {
-
-                this.style.height = "auto";
-
-                this.style.height =
-                this.scrollHeight + "px";
-
-            }
-        );
-
-
-    });
-
-
 
 });
