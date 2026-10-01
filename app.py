@@ -1722,7 +1722,93 @@ def activate_admin():
 
         return redirect(url_for("admin"))
 
-    return render_template("activate_admin.html")
+    return """
+    <!doctype html>
+    <html lang="es">
+    <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <title>Activar administrador | Academy Blox Script</title>
+        <style>
+            * { box-sizing: border-box; }
+            body {
+                margin: 0;
+                min-height: 100vh;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                background: #05070b;
+                color: #fff;
+                font-family: Arial, sans-serif;
+                padding: 20px;
+            }
+            .card {
+                width: 100%;
+                max-width: 430px;
+                background: #0b111a;
+                border: 1px solid #00e5ff;
+                border-radius: 18px;
+                padding: 30px;
+                box-shadow: 0 0 30px rgba(0,229,255,.18);
+            }
+            h1 {
+                margin-top: 0;
+                color: #00e5ff;
+                text-align: center;
+            }
+            p {
+                color: #b8c4d1;
+                text-align: center;
+                line-height: 1.5;
+            }
+            input {
+                width: 100%;
+                padding: 14px;
+                margin: 18px 0 12px;
+                border-radius: 10px;
+                border: 1px solid #263544;
+                background: #05070b;
+                color: white;
+                outline: none;
+            }
+            button {
+                width: 100%;
+                padding: 14px;
+                border: 0;
+                border-radius: 10px;
+                background: #00e5ff;
+                color: #001018;
+                font-weight: bold;
+                cursor: pointer;
+            }
+            .back {
+                display: block;
+                margin-top: 16px;
+                text-align: center;
+                color: #00e5ff;
+                text-decoration: none;
+            }
+        </style>
+    </head>
+    <body>
+        <div class="card">
+            <h1>Activar administrador</h1>
+            <p>Introduce el código de administrador configurado en Render.</p>
+            <form method="POST">
+                <input
+                    type="password"
+                    name="code"
+                    placeholder="Código de administrador"
+                    autocomplete="off"
+                    required
+                >
+                <button type="submit">Activar administrador</button>
+            </form>
+            <a class="back" href="/">Volver al inicio</a>
+        </div>
+    </body>
+    </html>
+    """
 
 
 # ============================================================
