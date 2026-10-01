@@ -4,11 +4,14 @@
 <head>
 
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-    <title>Academy AI - Academy Blox Script</title>
+    <meta name="viewport"
+          content="width=device-width, initial-scale=1.0">
 
-    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <title>Academy AI</title>
+
+    <link rel="stylesheet"
+          href="{{ url_for('static', filename='style.css') }}">
 
 </head>
 
@@ -18,9 +21,10 @@
 
 <header class="navbar">
 
-    <div class="logo">
+    <a class="logo"
+       href="{{ url_for('index') }}">
         🤖 Academy AI
-    </div>
+    </a>
 
 
     <nav>
@@ -29,96 +33,75 @@
             Inicio
         </a>
 
-
-        <a href="{{ url_for('logout') }}">
-            Salir
+        <a href="{{ url_for('scripts') }}">
+            Scripts
         </a>
 
     </nav>
-
 
 </header>
 
 
 
+<main class="ai-page">
 
-<main class="ai-container">
+    <section class="ai-interface">
 
-
-    <div class="ai-card">
+        <span class="section-label">
+            ACADEMY AI
+        </span>
 
 
         <h1>
-            🤖 Asistente Academy Blox
+            Tu asistente de programación
         </h1>
 
 
         <p>
-            Pregunta sobre scripts, Roblox Studio o programación.
+            Pregunta sobre Roblox Studio,
+            Luau y creación de scripts.
         </p>
-
 
 
         <form method="POST">
 
-
             <textarea
-            name="message"
-            placeholder="Escribe tu pregunta..."
-            rows="5"
-            required></textarea>
+                name="message"
+                rows="7"
+                placeholder="¿Cómo hago un sistema de puertas en Roblox?"
+                required>{{ question }}</textarea>
 
 
+            <button class="btn"
+                    type="submit">
 
-            <button type="submit">
-                Enviar
+                Enviar pregunta
+
             </button>
-
 
         </form>
 
 
-
-
         {% if response %}
-
 
         <div class="ai-response">
 
-
-            <h2>
-                Respuesta:
-            </h2>
+            <span class="section-label">
+                ACADEMY AI
+            </span>
 
 
             <p>
                 {{ response }}
             </p>
 
-
         </div>
-
 
         {% endif %}
 
-
-
-    </div>
-
+    </section>
 
 </main>
-
-
-
-
-<footer>
-
-<p>
-© 2026 Academy Blox Script
-</p>
-
-</footer>
-
 
 
 </body>
