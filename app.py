@@ -142,6 +142,16 @@ def init_db():
         )
     """)
 
+    db.execute("""
+        CREATE TABLE IF NOT EXISTS progress (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            user_id INTEGER NOT NULL,
+            lesson_id INTEGER NOT NULL,
+            completed_at TEXT NOT NULL,
+            UNIQUE(user_id, lesson_id)
+        )
+    """)
+
     db.commit()
     seed_lessons()
     seed_scripts()
@@ -743,6 +753,130 @@ Tu objetivo es enseñar, no solamente entregar código."""},
             "ok": False,
             "error": str(e)
         }), 500
+
+
+# =========================================================
+# PROGRESO DE LECCIONES
+# =========================================================
+
+@app.route("/api/progress")
+@login_required
+def api_progress():
+    db = get_db()
+    rows = db.execute("""
+        SELECT lesson_id FROM progress WHERE user_id = ?
+    """, (g.user["id"],)).fetchall()
+
+    return jsonify({
+        "ok": True,
+        "completed": [row["lesson_id"] for row in rows]
+    })
+
+
+@app.route("/api/complete-lesson/<int:lesson_id>", methods=["POST"])
+@login_required
+def api_complete_lesson(lesson_id):
+    db = get_db()
+
+    existing = db.execute("""
+        SELECT id FROM progress WHERE user_id = ? AND lesson_id = ?
+    """, (g.user["id"], lesson_id)).fetchone()
+
+    if existing is None:
+        db.execute("""
+            INSERT INTO progress (user_id, lesson_id, completed_at)
+            VALUES (?, ?, ?)
+        """, (g.user["id"], lesson_id, datetime.utcnow().isoformat()))
+        db.commit()
+
+    return jsonify({"ok": True})
+
+
+@app.route("/api/analyze-code", methods=["POST"])
+@login_required
+def api_analyze_code():
+    data = request.get_json(silent=True) or {}
+    code = str(data.get("code", "")).strip()
+
+    if not code:
+        return jsonify({
+            "ok": False,
+            "error": "Escribe algún código para analizar."
+        }), 400
+
+    tips = []
+    positives = []
+
+    if "local " not in code and "function " not in code:
+        tips.append({
+            "title": "Usa variables locales",
+            "tip": "Declara tus variables con 'local'. Es más eficiente y evita conflictos.",
+            "example": "local monedas = 10"
+        })
+    else:
+        positives.append("Usas variables locales correctamente ✅")
+
+    if "print(" not in code:
+        tips.append({
+            "title": "Agrega prints para depurar",
+            "tip": "Usa print() para verificar que tu código se ejecuta como esperas.",
+            "example": 'print("Hola jugador")'
+        })
+    else:
+        positives.append("Usas print() para depurar ✅")
+
+    if code.count("function") != code.count("end") and "function" in code:
+        tips.append({
+            "title": "Revisa tus funciones",
+            "tip": "Cada 'function' debe cerrarse con 'end'. Cuenta que coincidan.",
+            "example": "local function saludar()\n    print(\"Hola\")\nend"
+        })
+    elif "function" in code:
+        positives.append("Tus funciones están bien cerradas ✅")
+
+    if ":Connect" in code and "function" not in code:
+        tips.append({
+            "title": "Los eventos usan funciones",
+            "tip": "Cuando uses :Connect() debes pasarle una función.",
+            "example": 'part.Touched:Connect(function(hit)\n    print(hit.Name)\nend)'
+        })
+
+    if "wait(" in code:
+        tips.append({
+            "title": "Usa task.wait() en lugar de wait()",
+            "tip": "wait() está deprecado. Usa task.wait() que es más preciso.",
+            "example": "task.wait(1)"
+        })
+
+    return jsonify({
+        "ok": True,
+        "tips": tips,
+        "positives": positives,
+        "total_tips": len(tips)
+    })
+
+
+@app.route("/api/next-lesson/<int:lesson_id>")
+@login_required
+def api_next_lesson(lesson_id):
+    db = get_db()
+    next_lesson = db.execute("""
+        SELECT id, title FROM lessons
+        WHERE id > ?
+        ORDER BY id ASC
+        LIMIT 1
+    """, (lesson_id,)).fetchone()
+
+    if next_lesson is None:
+        return jsonify({"ok": True, "next": None})
+
+    return jsonify({
+        "ok": True,
+        "next": {
+            "id": next_lesson["id"],
+            "title": next_lesson["title"]
+        }
+    })
 
 
 # =========================================================
