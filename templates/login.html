@@ -50,11 +50,11 @@
         </p>
 
 
-        {% with messages = get_flashed_messages() %}
+        {% with messages = get_flashed_messages(with_categories=true) %}
 
-            {% for message in messages %}
+            {% for category, message in messages %}
 
-                <div class="message">
+                <div class="message {{ category }}">
                     {{ message }}
                 </div>
 
@@ -66,14 +66,15 @@
         <form method="POST">
 
             <label>
-                Usuario o correo
+                Correo electrónico
             </label>
 
             <input
-                type="text"
-                name="username"
+                type="email"
+                name="email"
                 required
-                autocomplete="username"
+                autocomplete="email"
+                placeholder="tu@correo.com"
             >
 
 
@@ -86,6 +87,7 @@
                 name="password"
                 required
                 autocomplete="current-password"
+                placeholder="••••••••"
             >
 
 
