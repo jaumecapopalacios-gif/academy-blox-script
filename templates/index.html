@@ -299,7 +299,7 @@
 
                 <div class="script-code">
 
-                    <pre><code>{{ script["code"] }}</code></pre>
+                    <pre><code id="code-{{ script['id'] }}">{{ script["code"] }}</code></pre>
 
                 </div>
 
@@ -307,8 +307,8 @@
                 <div class="script-actions">
 
                     <button
-                        class="btn-primary"
-                        onclick="copyScript(this)"
+                        class="btn-primary copy-button"
+                        data-target="code-{{ script['id'] }}"
                     >
                         Copiar script
                     </button>
@@ -479,67 +479,7 @@
 </footer>
 
 
-<script>
-
-function copyScript(button) {
-
-    const card = button.closest(".script-card");
-
-    if (!card) {
-        return;
-    }
-
-    const codeElement = card.querySelector("code");
-
-    if (!codeElement) {
-        return;
-    }
-
-    const code = codeElement.innerText;
-
-    navigator.clipboard.writeText(code)
-        .then(() => {
-
-            const originalText = button.innerText;
-
-            button.innerText = "✓ Copiado";
-
-            setTimeout(() => {
-
-                button.innerText = originalText;
-
-            }, 1500);
-
-        })
-        .catch(() => {
-
-            const textarea = document.createElement("textarea");
-
-            textarea.value = code;
-
-            document.body.appendChild(textarea);
-
-            textarea.select();
-
-            document.execCommand("copy");
-
-            textarea.remove();
-
-            const originalText = button.innerText;
-
-            button.innerText = "✓ Copiado";
-
-            setTimeout(() => {
-
-                button.innerText = originalText;
-
-            }, 1500);
-
-        });
-
-}
-
-</script>
+<script src="{{ url_for('static', filename='script.js') }}"></script>
 
 </body>
 </html>
