@@ -4,7 +4,13 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-    <title>Lecciones | Academy Blox Script</title>
+    <title>
+        {% if lesson %}
+            {{ lesson["title"] }} | Academy Blox Script
+        {% else %}
+            Lecciones | Academy Blox Script
+        {% endif %}
+    </title>
 
     <link
         rel="stylesheet"
@@ -32,15 +38,87 @@
             </a>
         {% endif %}
 
-        <a href="{{ url_for('logout') }}">
-            Cerrar sesión
-        </a>
+        {% if user %}
+            <a href="{{ url_for('logout') }}">
+                Cerrar sesión
+            </a>
+        {% else %}
+            <a href="{{ url_for('login') }}">
+                Iniciar sesión
+            </a>
+        {% endif %}
     </nav>
 
 </header>
 
 
 <main class="page-container">
+
+
+{% if lesson %}
+
+    <!-- ============================================= -->
+    <!-- VISTA DE UNA LECCIÓN INDIVIDUAL               -->
+    <!-- ============================================= -->
+
+    <section class="page-header">
+
+        <span class="badge">
+            {{ lesson["category"] }}
+        </span>
+
+        <h1>
+            {{ lesson["title"] }}
+        </h1>
+
+        <p>
+            {{ lesson["description"] }}
+        </p>
+
+    </section>
+
+
+    <article class="lesson-detail">
+
+        <div class="lesson-content-text">
+            {{ lesson["content"] }}
+        </div>
+
+
+        {% if lesson["code"] %}
+
+            <div class="lesson-code">
+
+                <h3>
+                    Código de ejemplo
+                </h3>
+
+                <pre><code>{{ lesson["code"] }}</code></pre>
+
+            </div>
+
+        {% endif %}
+
+    </article>
+
+
+    <div class="lesson-navigation">
+
+        <a
+            class="btn-secondary"
+            href="{{ url_for('lessons') }}"
+        >
+            ← Volver a lecciones
+        </a>
+
+    </div>
+
+
+{% else %}
+
+    <!-- ============================================= -->
+    <!-- VISTA DE LA LISTA DE LECCIONES                -->
+    <!-- ============================================= -->
 
     <section class="page-header">
 
@@ -62,31 +140,31 @@
 
     <section class="lessons-grid">
 
-        {% for lesson in lessons %}
+        {% for item in lessons %}
 
         <article class="lesson-card">
 
             <div class="lesson-number">
-                {{ "%02d"|format(lesson["id"]) }}
+                {{ "%02d"|format(item["id"]) }}
             </div>
 
             <div class="lesson-content">
 
                 <span class="lesson-category">
-                    {{ lesson["category"] }}
+                    {{ item["category"] }}
                 </span>
 
                 <h2>
-                    {{ lesson["title"] }}
+                    {{ item["title"] }}
                 </h2>
 
                 <p>
-                    {{ lesson["description"] }}
+                    {{ item["description"] }}
                 </p>
 
                 <a
                     class="btn-primary"
-                    href="{{ url_for('lesson', lesson_id=lesson['id']) }}"
+                    href="{{ url_for('lesson_detail', lesson_id=item['id']) }}"
                 >
                     Estudiar lección →
                 </a>
@@ -95,9 +173,18 @@
 
         </article>
 
+        {% else %}
+
+        <p>
+            No hay lecciones todavía.
+        </p>
+
         {% endfor %}
 
     </section>
+
+{% endif %}
+
 
 </main>
 
