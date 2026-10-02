@@ -41,7 +41,6 @@ app.config["SESSION_COOKIE_SECURE"] = (
     os.getenv("SESSION_COOKIE_SECURE", "0") == "1"
 )
 
-# Límite diario de preguntas a la IA
 AI_DAILY_LIMIT = int(os.getenv("AI_DAILY_LIMIT", "10"))
 
 
@@ -670,7 +669,6 @@ def api_ai_restantes():
 @app.route("/api/ai", methods=["POST"])
 @login_required
 def api_ai():
-    # Verificar límite diario
     usadas = get_ai_usage_today(g.user["id"])
 
     if usadas >= AI_DAILY_LIMIT:
