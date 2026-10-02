@@ -8,7 +8,7 @@
     <meta name="viewport"
           content="width=device-width, initial-scale=1.0">
 
-    <title>Academy AI</title>
+    <title>Academy AI | Academy Blox Script</title>
 
     <link rel="stylesheet"
           href="{{ url_for('static', filename='style.css') }}">
@@ -33,8 +33,26 @@
             Inicio
         </a>
 
+        <a href="{{ url_for('lessons') }}">
+            Lecciones
+        </a>
+
         <a href="{{ url_for('scripts') }}">
             Scripts
+        </a>
+
+        <a href="{{ url_for('ai') }}">
+            Academy AI
+        </a>
+
+        {% if user and user["is_admin"] %}
+            <a href="{{ url_for('admin') }}">
+                Administrador
+            </a>
+        {% endif %}
+
+        <a href="{{ url_for('logout') }}">
+            Salir
         </a>
 
     </nav>
@@ -63,17 +81,27 @@
         </p>
 
 
-        <form method="POST">
+        <p id="contador-ia"
+           class="ai-counter">
+            Cargando límite diario...
+        </p>
+
+
+        <form id="ai-form"
+              onsubmit="enviarPregunta(event)">
 
             <textarea
+                id="mensaje"
                 name="message"
                 rows="7"
                 placeholder="¿Cómo hago un sistema de puertas en Roblox?"
-                required>{{ question }}</textarea>
+                required
+            ></textarea>
 
 
             <button class="btn"
-                    type="submit">
+                    type="submit"
+                    id="btn-enviar">
 
                 Enviar pregunta
 
@@ -82,27 +110,141 @@
         </form>
 
 
-        {% if response %}
-
-        <div class="ai-response">
+        <div id="ai-response"
+             class="ai-response"
+             style="display:none;">
 
             <span class="section-label">
-                ACADEMY AI
+                ACADEMY AI RESPONDE
             </span>
 
-
-            <p>
-                {{ response }}
-            </p>
+            <p id="ai-answer"></p>
 
         </div>
 
-        {% endif %}
+
+        <div id="ai-error"
+             class="ai-error"
+             style="display:none;">
+
+            <p id="ai-error-text"></p>
+
+        </div>
 
     </section>
 
 </main>
 
+
+
+<script>
+
+// ------------------------------------------------
+// Cargar contador al abrir la página
+// ------------------------------------------------
+
+async function cargarRestantes() {
+
+    try {
+
+        const res = await fetch("/api/ai/restantes");
+        const data = await res.json();
+
+        if (data.ok) {
+
+            document.getElementById("contador-ia").textContent =
+                `Te quedan ${data.restantes} de ${data.limite} preguntas hoy`;
+
+        }
+
+    } catch (e) {
+
+        document.getElementById("contador-ia").textContent = "";
+
+    }
+
+}
+
+
+// ------------------------------------------------
+// Enviar pregunta a la IA
+// ------------------------------------------------
+
+async function enviarPregunta(event) {
+
+    event.preventDefault();
+
+    const textarea = document.getElementById("mensaje");
+    const boton = document.getElementById("btn-enviar");
+    const responseBox = document.getElementById("ai-response");
+    const answerEl = document.getElementById("ai-answer");
+    const errorBox = document.getElementById("ai-error");
+    const errorText = document.getElementById("ai-error-text");
+
+    const mensaje = textarea.value.trim();
+
+    if (!mensaje) return;
+
+    // Ocultar cajas anteriores
+    responseBox.style.display = "none";
+    errorBox.style.display = "none";
+
+    boton.disabled = true;
+    boton.textContent = "Pensando...";
+
+    try {
+
+        const res = await fetch("/api/ai", {
+
+            method: "POST",
+
+            headers: {
+                "Content-Type": "application/json"
+            },
+
+            body: JSON.stringify({ message: mensaje })
+
+        });
+
+        const data = await res.json();
+
+        if (data.ok) {
+
+            answerEl.textContent = data.answer;
+            responseBox.style.display = "block";
+
+            // Actualizar contador
+            cargarRestantes();
+
+        } else {
+
+            errorText.textContent = data.error || "Error desconocido.";
+            errorBox.style.display = "block";
+
+        }
+
+    } catch (e) {
+
+        errorText.textContent = "Error de conexión. Intenta de nuevo.";
+        errorBox.style.display = "block";
+
+    } finally {
+
+        boton.disabled = false;
+        boton.textContent = "Enviar pregunta";
+
+    }
+
+}
+
+
+// ------------------------------------------------
+// Cargar contador al inicio
+// ------------------------------------------------
+
+cargarRestantes();
+
+</script>
 
 </body>
 
