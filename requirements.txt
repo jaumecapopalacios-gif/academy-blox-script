@@ -2,3 +2,6 @@ Flask
 gunicorn
 werkzeug
 openai
+psycopg2-binary
+Authlib
+requests
