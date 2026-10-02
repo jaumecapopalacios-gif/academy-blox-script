@@ -114,7 +114,6 @@ def init_db():
         )
     """)
 
-    # Migración: asegurar columnas nuevas si la tabla ya existía
     try:
         cur.execute("ALTER TABLE users ADD COLUMN IF NOT EXISTS google_id TEXT")
         cur.execute("ALTER TABLE users ALTER COLUMN password_hash DROP NOT NULL")
@@ -170,10 +169,6 @@ def init_db():
     seed_lessons()
     seed_scripts()
 
-
-# =========================================================
-# SEED LECCIONES
-# =========================================================
 
 def seed_lessons():
     count = query_db("SELECT COUNT(*) AS total FROM lessons", one=True)["total"]
@@ -268,10 +263,6 @@ def seed_lessons():
         """, (title, description, content, code, category, now))
 
 
-# =========================================================
-# SEED SCRIPTS
-# =========================================================
-
 def seed_scripts():
     count = query_db("SELECT COUNT(*) AS total FROM scripts", one=True)["total"]
     if count and count > 0:
@@ -301,10 +292,6 @@ def seed_scripts():
         """, (title, description, code, category, now))
 
 
-# =========================================================
-# USUARIO ACTUAL
-# =========================================================
-
 @app.before_request
 def load_user():
     g.user = None
@@ -331,10 +318,6 @@ def inject_user():
     return {"user": g.user, "logged_in": g.user is not None}
 
 
-# =========================================================
-# DECORADORES
-# =========================================================
-
 def login_required(view):
     @wraps(view)
     def wrapped_view(*args, **kwargs):
@@ -358,20 +341,12 @@ def admin_required(view):
     return wrapped_view
 
 
-# =========================================================
-# INICIO
-# =========================================================
-
 @app.route("/")
 def index():
     lessons = query_db("SELECT * FROM lessons ORDER BY id DESC LIMIT 6")
     scripts = query_db("SELECT * FROM scripts ORDER BY id DESC LIMIT 6")
     return render_template("index.html", lessons=lessons, scripts=scripts)
 
-
-# =========================================================
-# REGISTRO
-# =========================================================
 
 @app.route("/register", methods=["GET", "POST"])
 def register():
@@ -409,10 +384,6 @@ def register():
 
     return render_template("register.html")
 
-
-# =========================================================
-# LOGIN
-# =========================================================
 
 @app.route("/login", methods=["GET", "POST"])
 def login():
@@ -455,10 +426,6 @@ def login():
 
     return render_template("login.html")
 
-
-# =========================================================
-# LOGIN CON GOOGLE
-# =========================================================
 
 @app.route("/auth/google")
 def auth_google():
@@ -511,20 +478,12 @@ def auth_google_callback():
         return redirect(url_for("login"))
 
 
-# =========================================================
-# LOGOUT
-# =========================================================
-
 @app.route("/logout")
 def logout():
     session.clear()
     flash("Sesión cerrada.", "success")
     return redirect(url_for("index"))
 
-
-# =========================================================
-# LECCIONES
-# =========================================================
 
 @app.route("/lessons")
 def lessons():
@@ -542,10 +501,6 @@ def lesson_detail(lesson_id):
 
     return render_template("lesson.html", lesson=lesson)
 
-
-# =========================================================
-# SCRIPTS
-# =========================================================
 
 @app.route("/scripts")
 def scripts():
@@ -572,10 +527,6 @@ def scripts():
     return render_template("scripts.html", scripts=scripts_list, categories=categories, q=q, category=category)
 
 
-# =========================================================
-# ACTIVAR ADMIN
-# =========================================================
-
 @app.route("/activate-admin", methods=["GET", "POST"])
 @login_required
 def activate_admin():
@@ -595,10 +546,6 @@ def activate_admin():
 
     return render_template("admin_code.html")
 
-
-# =========================================================
-# PANEL ADMIN
-# =========================================================
 
 @app.route("/admin", methods=["GET", "POST"])
 @admin_required
@@ -664,10 +611,6 @@ def admin():
 
     return render_template("admin.html", users=users, lessons=lessons_list, scripts=scripts_list)
 
-
-# =========================================================
-# ACADEMY AI
-# =========================================================
 
 @app.route("/ai")
 @login_required
@@ -802,10 +745,6 @@ Tu objetivo es enseñar, no solamente entregar código."""},
         }), 500
 
 
-# =========================================================
-# PROGRESO DE LECCIONES
-# =========================================================
-
 @app.route("/api/progress")
 @login_required
 def api_progress():
@@ -919,18 +858,10 @@ def api_next_lesson(lesson_id):
     })
 
 
-# =========================================================
-# HEALTH CHECK
-# =========================================================
-
 @app.route("/health")
 def health():
     return jsonify({"status": "online"})
 
-
-# =========================================================
-# INICIALIZAR
-# =========================================================
 
 with app.app_context():
     init_db()
@@ -938,4 +869,4 @@ with app.app_context():
 
 if __name__ == "__main__":
     port = int(os.getenv("PORT", "5000"))
-    app.run(host="0.0.0.
+    app.run(host="0.0.0.0", port=port, debug=False)
