@@ -1,8 +1,10 @@
 import os
-import sqlite3
 import secrets
 from functools import wraps
 from datetime import datetime
+
+import psycopg2
+import psycopg2.extras
 
 from flask import (
     Flask,
@@ -28,8 +30,7 @@ except ImportError:
 # CONFIGURACIÓN
 # =========================================================
 
-BASE_DIR = os.path.abspath(os.path.dirname(__file__))
-DB_PATH = os.path.join(BASE_DIR, "academy.db")
+DATABASE_URL = os.getenv("DATABASE_URL", "")
 
 app = Flask(__name__)
 
@@ -45,13 +46,12 @@ AI_DAILY_LIMIT = int(os.getenv("AI_DAILY_LIMIT", "10"))
 
 
 # =========================================================
-# BASE DE DATOS
+# BASE DE DATOS (PostgreSQL)
 # =========================================================
 
 def get_db():
     if "db" not in g:
-        g.db = sqlite3.connect(DB_PATH)
-        g.db.row_factory = sqlite3.Row
+        g.db = psycopg2.connect(DATABASE_URL, sslmode="require")
     return g.db
 
 
@@ -62,42 +62,34 @@ def close_db(exception=None):
         db.close()
 
 
-def migrate_users_table(db):
-    columns = db.execute("PRAGMA table_info(users)").fetchall()
-    if not columns:
-        return
+def query_db(query, args=(), one=False):
+    """Ejecuta un SELECT y devuelve las filas como diccionarios."""
+    db = get_db()
+    cur = db.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
+    cur.execute(query, args)
+    rows = cur.fetchall()
+    cur.close()
+    if one:
+        return rows[0] if rows else None
+    return rows
 
-    column_names = [column["name"] for column in columns]
-    if "username" not in column_names:
-        return
 
-    db.execute("""
-        CREATE TABLE users_new (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            email TEXT UNIQUE NOT NULL,
-            password_hash TEXT NOT NULL,
-            is_admin INTEGER DEFAULT 0,
-            is_blocked INTEGER DEFAULT 0,
-            created_at TEXT NOT NULL
-        )
-    """)
-
-    db.execute("""
-        INSERT INTO users_new (id, email, password_hash, is_admin, is_blocked, created_at)
-        SELECT id, email, password_hash, is_admin, is_blocked, created_at FROM users
-    """)
-
-    db.execute("DROP TABLE users")
-    db.execute("ALTER TABLE users_new RENAME TO users")
+def execute_db(query, args=()):
+    """Ejecuta INSERT / UPDATE / DELETE y hace commit."""
+    db = get_db()
+    cur = db.cursor()
+    cur.execute(query, args)
     db.commit()
+    cur.close()
 
 
 def init_db():
     db = get_db()
+    cur = db.cursor()
 
-    db.execute("""
+    cur.execute("""
         CREATE TABLE IF NOT EXISTS users (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            id SERIAL PRIMARY KEY,
             email TEXT UNIQUE NOT NULL,
             password_hash TEXT NOT NULL,
             is_admin INTEGER DEFAULT 0,
@@ -105,13 +97,10 @@ def init_db():
             created_at TEXT NOT NULL
         )
     """)
-    db.commit()
 
-    migrate_users_table(db)
-
-    db.execute("""
+    cur.execute("""
         CREATE TABLE IF NOT EXISTS lessons (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            id SERIAL PRIMARY KEY,
             title TEXT NOT NULL,
             description TEXT NOT NULL,
             content TEXT NOT NULL,
@@ -121,9 +110,9 @@ def init_db():
         )
     """)
 
-    db.execute("""
+    cur.execute("""
         CREATE TABLE IF NOT EXISTS scripts (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            id SERIAL PRIMARY KEY,
             title TEXT NOT NULL,
             description TEXT NOT NULL,
             code TEXT NOT NULL,
@@ -132,9 +121,9 @@ def init_db():
         )
     """)
 
-    db.execute("""
+    cur.execute("""
         CREATE TABLE IF NOT EXISTS ai_usage (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            id SERIAL PRIMARY KEY,
             user_id INTEGER NOT NULL,
             date TEXT NOT NULL,
             count INTEGER DEFAULT 0,
@@ -142,9 +131,9 @@ def init_db():
         )
     """)
 
-    db.execute("""
+    cur.execute("""
         CREATE TABLE IF NOT EXISTS progress (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            id SERIAL PRIMARY KEY,
             user_id INTEGER NOT NULL,
             lesson_id INTEGER NOT NULL,
             completed_at TEXT NOT NULL,
@@ -153,6 +142,8 @@ def init_db():
     """)
 
     db.commit()
+    cur.close()
+
     seed_lessons()
     seed_scripts()
 
@@ -162,9 +153,8 @@ def init_db():
 # =========================================================
 
 def seed_lessons():
-    db = get_db()
-    count = db.execute("SELECT COUNT(*) AS total FROM lessons").fetchone()["total"]
-    if count >= 24:
+    count = query_db("SELECT COUNT(*) AS total FROM lessons", one=True)["total"]
+    if count and count >= 24:
         return
 
     lessons = [
@@ -242,19 +232,17 @@ def seed_lessons():
          "", "Roblox Studio"),
     ]
 
-    existing = db.execute("SELECT title FROM lessons").fetchall()
+    existing = query_db("SELECT title FROM lessons")
     existing_titles = {row["title"] for row in existing}
     now = datetime.utcnow().isoformat()
 
     for title, description, content, code, category in lessons:
         if title in existing_titles:
             continue
-        db.execute("""
+        execute_db("""
             INSERT INTO lessons (title, description, content, code, category, created_at)
-            VALUES (?, ?, ?, ?, ?, ?)
+            VALUES (%s, %s, %s, %s, %s, %s)
         """, (title, description, content, code, category, now))
-
-    db.commit()
 
 
 # =========================================================
@@ -262,9 +250,8 @@ def seed_lessons():
 # =========================================================
 
 def seed_scripts():
-    db = get_db()
-    count = db.execute("SELECT COUNT(*) AS total FROM scripts").fetchone()["total"]
-    if count > 0:
+    count = query_db("SELECT COUNT(*) AS total FROM scripts", one=True)["total"]
+    if count and count > 0:
         return
 
     scripts = [
@@ -285,12 +272,10 @@ def seed_scripts():
     now = datetime.utcnow().isoformat()
 
     for title, description, code, category in scripts:
-        db.execute("""
+        execute_db("""
             INSERT INTO scripts (title, description, code, category, created_at)
-            VALUES (?, ?, ?, ?, ?)
+            VALUES (%s, %s, %s, %s, %s)
         """, (title, description, code, category, now))
-
-    db.commit()
 
 
 # =========================================================
@@ -304,8 +289,7 @@ def load_user():
     if not user_id:
         return
 
-    db = get_db()
-    user = db.execute("SELECT * FROM users WHERE id = ?", (user_id,)).fetchone()
+    user = query_db("SELECT * FROM users WHERE id = %s", (user_id,), one=True)
 
     if user is None:
         session.clear()
@@ -357,9 +341,8 @@ def admin_required(view):
 
 @app.route("/")
 def index():
-    db = get_db()
-    lessons = db.execute("SELECT * FROM lessons ORDER BY id DESC LIMIT 6").fetchall()
-    scripts = db.execute("SELECT * FROM scripts ORDER BY id DESC LIMIT 6").fetchall()
+    lessons = query_db("SELECT * FROM lessons ORDER BY id DESC LIMIT 6")
+    scripts = query_db("SELECT * FROM scripts ORDER BY id DESC LIMIT 6")
     return render_template("index.html", lessons=lessons, scripts=scripts)
 
 
@@ -384,8 +367,7 @@ def register():
             flash("La contraseña debe tener al menos 6 caracteres.", "error")
             return render_template("register.html")
 
-        db = get_db()
-        exists = db.execute("SELECT id FROM users WHERE lower(email) = ?", (email,)).fetchone()
+        exists = query_db("SELECT id FROM users WHERE lower(email) = %s", (email,), one=True)
 
         if exists:
             flash("Ese correo ya está registrado.", "error")
@@ -394,11 +376,10 @@ def register():
         password_hash = generate_password_hash(password)
         now = datetime.utcnow().isoformat()
 
-        db.execute("""
+        execute_db("""
             INSERT INTO users (email, password_hash, is_admin, is_blocked, created_at)
-            VALUES (?, ?, 0, 0, ?)
+            VALUES (%s, %s, 0, 0, %s)
         """, (email, password_hash, now))
-        db.commit()
 
         flash("Cuenta creada correctamente. Ahora inicia sesión.", "success")
         return redirect(url_for("login"))
@@ -423,8 +404,7 @@ def login():
             flash("Introduce tu correo y contraseña.", "error")
             return render_template("login.html")
 
-        db = get_db()
-        user = db.execute("SELECT * FROM users WHERE lower(email) = ?", (email,)).fetchone()
+        user = query_db("SELECT * FROM users WHERE lower(email) = %s", (email,), one=True)
 
         if user is None:
             flash("Correo o contraseña incorrecta.", "error")
@@ -466,15 +446,13 @@ def logout():
 
 @app.route("/lessons")
 def lessons():
-    db = get_db()
-    lessons_list = db.execute("SELECT * FROM lessons ORDER BY id ASC").fetchall()
+    lessons_list = query_db("SELECT * FROM lessons ORDER BY id ASC")
     return render_template("lesson.html", lessons=lessons_list)
 
 
 @app.route("/lesson/<int:lesson_id>")
 def lesson_detail(lesson_id):
-    db = get_db()
-    lesson = db.execute("SELECT * FROM lessons WHERE id = ?", (lesson_id,)).fetchone()
+    lesson = query_db("SELECT * FROM lessons WHERE id = %s", (lesson_id,), one=True)
 
     if lesson is None:
         flash("La lección no existe.", "error")
@@ -489,7 +467,6 @@ def lesson_detail(lesson_id):
 
 @app.route("/scripts")
 def scripts():
-    db = get_db()
     q = request.args.get("q", "").strip()
     category = request.args.get("category", "").strip()
 
@@ -497,18 +474,18 @@ def scripts():
     params = []
 
     if q:
-        sql += " AND (title LIKE ? OR description LIKE ? OR code LIKE ?)"
+        sql += " AND (title ILIKE %s OR description ILIKE %s OR code ILIKE %s)"
         search = f"%{q}%"
         params.extend([search, search, search])
 
     if category:
-        sql += " AND category = ?"
+        sql += " AND category = %s"
         params.append(category)
 
     sql += " ORDER BY id DESC"
 
-    scripts_list = db.execute(sql, params).fetchall()
-    categories = db.execute("SELECT DISTINCT category FROM scripts ORDER BY category").fetchall()
+    scripts_list = query_db(sql, tuple(params))
+    categories = query_db("SELECT DISTINCT category FROM scripts ORDER BY category")
 
     return render_template("scripts.html", scripts=scripts_list, categories=categories, q=q, category=category)
 
@@ -528,9 +505,7 @@ def activate_admin():
             flash("Código de administrador incorrecto.", "error")
             return redirect(url_for("activate_admin"))
 
-        db = get_db()
-        db.execute("UPDATE users SET is_admin = 1 WHERE id = ?", (g.user["id"],))
-        db.commit()
+        execute_db("UPDATE users SET is_admin = 1 WHERE id = %s", (g.user["id"],))
 
         session["is_admin"] = True
         flash("Administrador activado correctamente.", "success")
@@ -546,8 +521,6 @@ def activate_admin():
 @app.route("/admin", methods=["GET", "POST"])
 @admin_required
 def admin():
-    db = get_db()
-
     if request.method == "POST":
         action = request.form.get("action", "")
 
@@ -562,11 +535,10 @@ def admin():
                 flash("Completa los campos obligatorios.", "error")
                 return redirect(url_for("admin"))
 
-            db.execute("""
+            execute_db("""
                 INSERT INTO lessons (title, description, content, code, category, created_at)
-                VALUES (?, ?, ?, ?, ?, ?)
+                VALUES (%s, %s, %s, %s, %s, %s)
             """, (title, description, content, code, category, datetime.utcnow().isoformat()))
-            db.commit()
             flash("Lección creada correctamente.", "success")
             return redirect(url_for("admin"))
 
@@ -580,36 +552,33 @@ def admin():
                 flash("Completa los campos obligatorios.", "error")
                 return redirect(url_for("admin"))
 
-            db.execute("""
+            execute_db("""
                 INSERT INTO scripts (title, description, code, category, created_at)
-                VALUES (?, ?, ?, ?, ?)
+                VALUES (%s, %s, %s, %s, %s)
             """, (title, description, code, category, datetime.utcnow().isoformat()))
-            db.commit()
             flash("Script creado correctamente.", "success")
             return redirect(url_for("admin"))
 
         if action == "block_user":
             user_id = request.form.get("user_id")
             if user_id:
-                db.execute("UPDATE users SET is_blocked = 1 WHERE id = ? AND id != ?",
+                execute_db("UPDATE users SET is_blocked = 1 WHERE id = %s AND id != %s",
                            (user_id, g.user["id"]))
-                db.commit()
                 flash("Usuario bloqueado.", "success")
             return redirect(url_for("admin"))
 
         if action == "unblock_user":
             user_id = request.form.get("user_id")
             if user_id:
-                db.execute("UPDATE users SET is_blocked = 0 WHERE id = ?", (user_id,))
-                db.commit()
+                execute_db("UPDATE users SET is_blocked = 0 WHERE id = %s", (user_id,))
                 flash("Usuario desbloqueado.", "success")
             return redirect(url_for("admin"))
 
-    users = db.execute("""
+    users = query_db("""
         SELECT id, email, is_admin, is_blocked, created_at FROM users ORDER BY id DESC
-    """).fetchall()
-    lessons_list = db.execute("SELECT * FROM lessons ORDER BY id DESC").fetchall()
-    scripts_list = db.execute("SELECT * FROM scripts ORDER BY id DESC").fetchall()
+    """)
+    lessons_list = query_db("SELECT * FROM lessons ORDER BY id DESC")
+    scripts_list = query_db("SELECT * FROM scripts ORDER BY id DESC")
 
     return render_template("admin.html", users=users, lessons=lessons_list, scripts=scripts_list)
 
@@ -625,13 +594,12 @@ def ai():
 
 
 def get_ai_usage_today(user_id):
-    db = get_db()
     today = datetime.utcnow().strftime("%Y-%m-%d")
 
-    row = db.execute("""
+    row = query_db("""
         SELECT count FROM ai_usage
-        WHERE user_id = ? AND date = ?
-    """, (user_id, today)).fetchone()
+        WHERE user_id = %s AND date = %s
+    """, (user_id, today), one=True)
 
     if row is None:
         return 0
@@ -639,27 +607,24 @@ def get_ai_usage_today(user_id):
 
 
 def increment_ai_usage(user_id):
-    db = get_db()
     today = datetime.utcnow().strftime("%Y-%m-%d")
 
-    row = db.execute("""
+    row = query_db("""
         SELECT count FROM ai_usage
-        WHERE user_id = ? AND date = ?
-    """, (user_id, today)).fetchone()
+        WHERE user_id = %s AND date = %s
+    """, (user_id, today), one=True)
 
     if row is None:
-        db.execute("""
+        execute_db("""
             INSERT INTO ai_usage (user_id, date, count)
-            VALUES (?, ?, 1)
+            VALUES (%s, %s, 1)
         """, (user_id, today))
     else:
-        db.execute("""
+        execute_db("""
             UPDATE ai_usage
             SET count = count + 1
-            WHERE user_id = ? AND date = ?
+            WHERE user_id = %s AND date = %s
         """, (user_id, today))
-
-    db.commit()
 
 
 @app.route("/api/ai/restantes")
@@ -762,10 +727,7 @@ Tu objetivo es enseñar, no solamente entregar código."""},
 @app.route("/api/progress")
 @login_required
 def api_progress():
-    db = get_db()
-    rows = db.execute("""
-        SELECT lesson_id FROM progress WHERE user_id = ?
-    """, (g.user["id"],)).fetchall()
+    rows = query_db("SELECT lesson_id FROM progress WHERE user_id = %s", (g.user["id"],))
 
     return jsonify({
         "ok": True,
@@ -776,18 +738,15 @@ def api_progress():
 @app.route("/api/complete-lesson/<int:lesson_id>", methods=["POST"])
 @login_required
 def api_complete_lesson(lesson_id):
-    db = get_db()
-
-    existing = db.execute("""
-        SELECT id FROM progress WHERE user_id = ? AND lesson_id = ?
-    """, (g.user["id"], lesson_id)).fetchone()
+    existing = query_db("""
+        SELECT id FROM progress WHERE user_id = %s AND lesson_id = %s
+    """, (g.user["id"], lesson_id), one=True)
 
     if existing is None:
-        db.execute("""
+        execute_db("""
             INSERT INTO progress (user_id, lesson_id, completed_at)
-            VALUES (?, ?, ?)
+            VALUES (%s, %s, %s)
         """, (g.user["id"], lesson_id, datetime.utcnow().isoformat()))
-        db.commit()
 
     return jsonify({"ok": True})
 
@@ -859,13 +818,12 @@ def api_analyze_code():
 @app.route("/api/next-lesson/<int:lesson_id>")
 @login_required
 def api_next_lesson(lesson_id):
-    db = get_db()
-    next_lesson = db.execute("""
+    next_lesson = query_db("""
         SELECT id, title FROM lessons
-        WHERE id > ?
+        WHERE id > %s
         ORDER BY id ASC
         LIMIT 1
-    """, (lesson_id,)).fetchone()
+    """, (lesson_id,), one=True)
 
     if next_lesson is None:
         return jsonify({"ok": True, "next": None})
