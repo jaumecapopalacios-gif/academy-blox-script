@@ -20,6 +20,8 @@ from flask import (
 
 from werkzeug.security import generate_password_hash, check_password_hash
 
+from authlib.integrations.flask_client import OAuth
+
 try:
     from openai import OpenAI
 except ImportError:
@@ -46,6 +48,21 @@ AI_DAILY_LIMIT = int(os.getenv("AI_DAILY_LIMIT", "10"))
 
 
 # =========================================================
+# GOOGLE OAUTH
+# =========================================================
+
+oauth = OAuth(app)
+
+google = oauth.register(
+    name="google",
+    client_id=os.getenv("GOOGLE_CLIENT_ID"),
+    client_secret=os.getenv("GOOGLE_CLIENT_SECRET"),
+    server_metadata_url="https://accounts.google.com/.well-known/openid-configuration",
+    client_kwargs={"scope": "openid email profile"}
+)
+
+
+# =========================================================
 # BASE DE DATOS (PostgreSQL)
 # =========================================================
 
@@ -63,7 +80,6 @@ def close_db(exception=None):
 
 
 def query_db(query, args=(), one=False):
-    """Ejecuta un SELECT y devuelve las filas como diccionarios."""
     db = get_db()
     cur = db.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
     cur.execute(query, args)
@@ -75,7 +91,6 @@ def query_db(query, args=(), one=False):
 
 
 def execute_db(query, args=()):
-    """Ejecuta INSERT / UPDATE / DELETE y hace commit."""
     db = get_db()
     cur = db.cursor()
     cur.execute(query, args)
@@ -91,12 +106,20 @@ def init_db():
         CREATE TABLE IF NOT EXISTS users (
             id SERIAL PRIMARY KEY,
             email TEXT UNIQUE NOT NULL,
-            password_hash TEXT NOT NULL,
+            password_hash TEXT,
+            google_id TEXT,
             is_admin INTEGER DEFAULT 0,
             is_blocked INTEGER DEFAULT 0,
             created_at TEXT NOT NULL
         )
     """)
+
+    # Migración: asegurar columnas nuevas si la tabla ya existía
+    try:
+        cur.execute("ALTER TABLE users ADD COLUMN IF NOT EXISTS google_id TEXT")
+        cur.execute("ALTER TABLE users ALTER COLUMN password_hash DROP NOT NULL")
+    except Exception:
+        db.rollback()
 
     cur.execute("""
         CREATE TABLE IF NOT EXISTS lessons (
@@ -149,7 +172,7 @@ def init_db():
 
 
 # =========================================================
-# LECCIONES SEED (24 lecciones)
+# SEED LECCIONES
 # =========================================================
 
 def seed_lessons():
@@ -246,7 +269,7 @@ def seed_lessons():
 
 
 # =========================================================
-# SCRIPTS SEED
+# SEED SCRIPTS
 # =========================================================
 
 def seed_scripts():
@@ -414,6 +437,10 @@ def login():
             flash("Esta cuenta está bloqueada.", "error")
             return render_template("login.html")
 
+        if not user["password_hash"]:
+            flash("Esta cuenta usa Google. Inicia sesión con Google.", "error")
+            return render_template("login.html")
+
         if not check_password_hash(user["password_hash"], password):
             flash("Correo o contraseña incorrecta.", "error")
             return render_template("login.html")
@@ -427,6 +454,61 @@ def login():
         return redirect(url_for("index"))
 
     return render_template("login.html")
+
+
+# =========================================================
+# LOGIN CON GOOGLE
+# =========================================================
+
+@app.route("/auth/google")
+def auth_google():
+    redirect_uri = url_for("auth_google_callback", _external=True)
+    return google.authorize_redirect(redirect_uri)
+
+
+@app.route("/auth/google/callback")
+def auth_google_callback():
+    try:
+        token = google.authorize_access_token()
+        userinfo = token.get("userinfo")
+
+        if not userinfo:
+            userinfo = google.get("https://openidconnect.googleapis.com/v1/userinfo").json()
+
+        email = userinfo.get("email", "").strip().lower()
+        google_id = userinfo.get("sub", "")
+
+        if not email:
+            flash("No se pudo obtener el correo de Google.", "error")
+            return redirect(url_for("login"))
+
+        user = query_db("SELECT * FROM users WHERE lower(email) = %s", (email,), one=True)
+
+        if user is None:
+            now = datetime.utcnow().isoformat()
+            execute_db("""
+                INSERT INTO users (email, password_hash, google_id, is_admin, is_blocked, created_at)
+                VALUES (%s, NULL, %s, 0, 0, %s)
+            """, (email, google_id, now))
+            user = query_db("SELECT * FROM users WHERE lower(email) = %s", (email,), one=True)
+        else:
+            if user["is_blocked"]:
+                flash("Esta cuenta está bloqueada.", "error")
+                return redirect(url_for("login"))
+            if not user["google_id"]:
+                execute_db("UPDATE users SET google_id = %s WHERE id = %s", (google_id, user["id"]))
+
+        session.clear()
+        session["user_id"] = user["id"]
+        session["email"] = user["email"]
+        session["is_admin"] = bool(user["is_admin"])
+
+        flash("Has iniciado sesión con Google.", "success")
+        return redirect(url_for("index"))
+
+    except Exception as e:
+        flash(f"Error al iniciar sesión con Google: {str(e)}", "error")
+        return redirect(url_for("login"))
 
 
 # =========================================================
@@ -847,17 +929,13 @@ def health():
 
 
 # =========================================================
-# INICIALIZAR BASE DE DATOS
+# INICIALIZAR
 # =========================================================
 
 with app.app_context():
     init_db()
 
 
-# =========================================================
-# EJECUTAR
-# =========================================================
-
 if __name__ == "__main__":
     port = int(os.getenv("PORT", "5000"))
-    app.run(host="0.0.0.0", port=port, debug=False)
+    app.run(host="0.0.0.
