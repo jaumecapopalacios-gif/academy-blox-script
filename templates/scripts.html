@@ -33,11 +33,25 @@
             Inicio
         </a>
 
+        <a href="{{ url_for('lessons') }}">
+            Lecciones
+        </a>
+
         <a href="{{ url_for('scripts') }}">
             Scripts
         </a>
 
-        {% if session.get("username") %}
+        <a href="{{ url_for('ai') }}">
+            Academy AI
+        </a>
+
+        {% if user and user["is_admin"] %}
+            <a href="{{ url_for('admin') }}">
+                Administrador
+            </a>
+        {% endif %}
+
+        {% if user %}
 
             <a href="{{ url_for('logout') }}">
                 Salir
@@ -46,7 +60,7 @@
         {% else %}
 
             <a href="{{ url_for('login') }}">
-                Login
+                Iniciar sesión
             </a>
 
         {% endif %}
@@ -83,8 +97,8 @@
 
         <input
             type="search"
-            name="search"
-            value="{{ search }}"
+            name="q"
+            value="{{ q }}"
             placeholder="Buscar scripts..."
         >
 
@@ -96,16 +110,16 @@
             </option>
 
 
-            {% for category in categories %}
+            {% for cat in categories %}
 
             <option
-                value="{{ category.category }}"
-                {% if selected_category == category.category %}
+                value="{{ cat.category }}"
+                {% if category == cat.category %}
                     selected
                 {% endif %}
             >
 
-                {{ category.category }}
+                {{ cat.category }}
 
             </option>
 
@@ -157,29 +171,6 @@
                     Copiar script
 
                 </button>
-
-
-                {% if session.get("username") %}
-
-                    <a
-                        class="btn small secondary"
-                        href="{{ url_for('script_detail', id=script.id) }}">
-
-                        Abrir
-
-                    </a>
-
-                {% else %}
-
-                    <a
-                        class="btn small secondary"
-                        href="{{ url_for('login') }}">
-
-                        Iniciar sesión
-
-                    </a>
-
-                {% endif %}
 
             </div>
 
