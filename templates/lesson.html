@@ -33,19 +33,13 @@
         <a href="{{ url_for('ai') }}">Academy AI</a>
 
         {% if user and user["is_admin"] %}
-            <a href="{{ url_for('admin') }}">
-                Administrador
-            </a>
+            <a href="{{ url_for('admin') }}">Administrador</a>
         {% endif %}
 
         {% if user %}
-            <a href="{{ url_for('logout') }}">
-                Cerrar sesión
-            </a>
+            <a href="{{ url_for('logout') }}">Cerrar sesión</a>
         {% else %}
-            <a href="{{ url_for('login') }}">
-                Iniciar sesión
-            </a>
+            <a href="{{ url_for('login') }}">Iniciar sesión</a>
         {% endif %}
     </nav>
 
@@ -54,23 +48,12 @@
 
 <main class="page-container">
 
-
 {% if lesson %}
 
     <section class="page-header">
-
-        <span class="badge">
-            {{ lesson["category"] }}
-        </span>
-
-        <h1>
-            {{ lesson["title"] }}
-        </h1>
-
-        <p>
-            {{ lesson["description"] }}
-        </p>
-
+        <span class="badge">{{ lesson["category"] }}</span>
+        <h1>{{ lesson["title"] }}</h1>
+        <p>{{ lesson["description"] }}</p>
     </section>
 
 
@@ -80,13 +63,319 @@
             {{ lesson["content"] }}
         </div>
 
-
         {% if lesson["code"] %}
-
             <div class="lesson-code">
+                <h3>Código de ejemplo</h3>
+                <pre><code>{{ lesson["code"] }}</code></pre>
+            </div>
+        {% endif %}
 
-                <h3>
-                    Código de ejemplo
-                </h3>
+    </article>
 
-                <pre><code
+
+    <!-- PRÁCTICA -->
+    <section class="practice-section">
+
+        <h3>✍️ Practica: escribe tu propio código</h3>
+        <p>
+            Escribe un script de Luau basado en lo que aprendiste.
+            Te daré consejos si detecto algo que puedas mejorar.
+        </p>
+
+        <textarea
+            id="practice-code"
+            rows="10"
+            placeholder="Escribe tu código Luau aquí..."
+        ></textarea>
+
+        <div class="practice-actions">
+            <button
+                class="btn-primary"
+                onclick="analizarCodigo()"
+                id="btn-analizar"
+            >
+                🔍 Analizar mi código
+            </button>
+        </div>
+
+        <div id="analyze-result" class="analyze-result" style="display:none;">
+
+            <div id="positives-box" style="display:none;">
+                <h4>✅ Lo que hiciste bien</h4>
+                <ul id="positives-list"></ul>
+            </div>
+
+            <div id="tips-box" style="display:none;">
+                <h4>💡 Sugerencias para mejorar</h4>
+                <ul id="tips-list"></ul>
+            </div>
+
+            <div id="analyze-ok" style="display:none;">
+                <p>🎉 ¡Muy bien! No encontré debilidades. Tu código se ve correcto.</p>
+            </div>
+
+        </div>
+
+    </section>
+
+
+    <!-- COMPLETAR LECCIÓN -->
+    <section class="complete-section">
+        <button
+            class="btn-complete"
+            onclick="completarLeccion({{ lesson['id'] }})"
+            id="btn-complete"
+        >
+            ✅ Marcar lección como completada
+        </button>
+    </section>
+
+
+    <!-- FELICIDADES -->
+    <div id="congrats-box" class="congrats-box" style="display:none;">
+        <div class="congrats-content">
+            <div class="congrats-icon">🎉</div>
+            <h2>¡Felicidades!</h2>
+            <p>Has completado esta lección.</p>
+
+            <div class="congrats-buttons">
+                <a class="btn-primary" id="btn-next-lesson" href="#">
+                    Siguiente lección →
+                </a>
+                <a class="btn-secondary" href="{{ url_for('lessons') }}">
+                    Volver al curso
+                </a>
+            </div>
+        </div>
+    </div>
+
+
+    <div class="lesson-navigation">
+        <a class="btn-secondary" href="{{ url_for('lessons') }}">
+            ← Volver a lecciones
+        </a>
+    </div>
+
+
+{% else %}
+
+    <section class="page-header">
+        <span class="badge">CURSO COMPLETO</span>
+        <h1>Aprende Roblox Studio</h1>
+        <p>24 lecciones para aprender desde cero hasta crear sistemas avanzados.</p>
+    </section>
+
+
+    <section class="lessons-grid" id="lessons-grid">
+
+        {% for item in lessons %}
+
+        <article class="lesson-card" data-lesson-id="{{ item['id'] }}">
+
+            <div class="lesson-number">
+                {{ "%02d"|format(item["id"]) }}
+            </div>
+
+            <div class="lesson-content">
+
+                <span class="lesson-category">{{ item["category"] }}</span>
+
+                <h2>
+                    {{ item["title"] }}
+                    <span class="completed-check" style="display:none;">✅</span>
+                </h2>
+
+                <p>{{ item["description"] }}</p>
+
+                <a
+                    class="btn-primary"
+                    href="{{ url_for('lesson_detail', lesson_id=item['id']) }}"
+                >
+                    Estudiar lección →
+                </a>
+
+            </div>
+
+        </article>
+
+        {% else %}
+
+        <p>No hay lecciones todavía.</p>
+
+        {% endfor %}
+
+    </section>
+
+{% endif %}
+
+</main>
+
+
+<footer class="footer">
+    <p>© 2026 Academy Blox Script</p>
+    <p>Aprende Roblox Studio. Crea. Programa. Mejora.</p>
+</footer>
+
+
+<script src="{{ url_for('static', filename='script.js') }}"></script>
+
+
+{% if lesson %}
+
+<script>
+
+async function analizarCodigo() {
+
+    const code = document.getElementById("practice-code").value.trim();
+
+    if (!code) {
+        alert("Escribe algún código primero.");
+        return;
+    }
+
+    const btn = document.getElementById("btn-analizar");
+    btn.disabled = true;
+    btn.textContent = "Analizando...";
+
+    try {
+
+        const res = await fetch("/api/analyze-code", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ code: code })
+        });
+
+        const data = await res.json();
+
+        const resultBox = document.getElementById("analyze-result");
+        const positivesBox = document.getElementById("positives-box");
+        const positivesList = document.getElementById("positives-list");
+        const tipsBox = document.getElementById("tips-box");
+        const tipsList = document.getElementById("tips-list");
+        const okBox = document.getElementById("analyze-ok");
+
+        positivesList.innerHTML = "";
+        tipsList.innerHTML = "";
+        positivesBox.style.display = "none";
+        tipsBox.style.display = "none";
+        okBox.style.display = "none";
+
+        if (data.ok) {
+
+            resultBox.style.display = "block";
+
+            if (data.positives && data.positives.length > 0) {
+                data.positives.forEach(function (p) {
+                    const li = document.createElement("li");
+                    li.textContent = p;
+                    positivesList.appendChild(li);
+                });
+                positivesBox.style.display = "block";
+            }
+
+            if (data.tips && data.tips.length > 0) {
+                data.tips.forEach(function (tip) {
+                    const li = document.createElement("li");
+                    li.innerHTML =
+                        "<strong>" + tip.title + "</strong><br>" +
+                        tip.tip +
+                        "<br><code>" + tip.example + "</code>";
+                    tipsList.appendChild(li);
+                });
+                tipsBox.style.display = "block";
+            }
+
+            if (data.total_tips === 0 && data.positives.length === 0) {
+                okBox.style.display = "block";
+            }
+
+        } else {
+            alert(data.error || "Error al analizar.");
+        }
+
+    } catch (e) {
+        alert("Error de conexión.");
+    } finally {
+        btn.disabled = false;
+        btn.textContent = "🔍 Analizar mi código";
+    }
+}
+
+
+async function completarLeccion(lessonId) {
+
+    const btn = document.getElementById("btn-complete");
+    btn.disabled = true;
+
+    try {
+
+        const res = await fetch("/api/complete-lesson/" + lessonId, {
+            method: "POST"
+        });
+
+        const data = await res.json();
+
+        if (data.ok) {
+
+            btn.style.display = "none";
+            document.getElementById("congrats-box").style.display = "block";
+
+            const nextRes = await fetch("/api/next-lesson/" + lessonId);
+            const nextData = await nextRes.json();
+
+            const btnNext = document.getElementById("btn-next-lesson");
+
+            if (nextData.ok && nextData.next) {
+                btnNext.href = "/lesson/" + nextData.next.id;
+                btnNext.textContent = "Siguiente: " + nextData.next.title + " →";
+            } else {
+                btnNext.href = "/lessons";
+                btnNext.textContent = "🏆 ¡Has terminado el curso!";
+            }
+
+        }
+
+    } catch (e) {
+        alert("Error al guardar el progreso.");
+        btn.disabled = false;
+    }
+}
+
+
+async function marcarCompletadas() {
+
+    try {
+
+        const res = await fetch("/api/progress");
+        const data = await res.json();
+
+        if (data.ok) {
+
+            data.completed.forEach(function (lessonId) {
+
+                const card = document.querySelector(
+                    '[data-lesson-id="' + lessonId + '"]'
+                );
+
+                if (card) {
+                    const check = card.querySelector(".completed-check");
+                    if (check) check.style.display = "inline";
+                    card.classList.add("completed");
+                }
+
+            });
+
+        }
+
+    } catch (e) {}
+
+}
+
+marcarCompletadas();
+
+</script>
+
+{% endif %}
+
+</body>
+</html>
